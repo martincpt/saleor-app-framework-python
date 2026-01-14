@@ -1,3 +1,5 @@
+"""Handlers for the Saleor App Framework."""
+
 from enum import Enum
 from typing import Annotated, Awaitable, Callable, List, Optional
 
@@ -8,6 +10,8 @@ from saleor_app.schemas.webhook import Webhook
 
 
 class SaleorEventType(str, Enum):
+    """Event types for the Saleor App Framework."""
+
     ADDRESS_CREATED = "ADDRESS_CREATED"
     ADDRESS_DELETED = "ADDRESS_DELETED"
     ADDRESS_UPDATED = "ADDRESS_UPDATED"
@@ -124,5 +128,7 @@ SQSUrl = Annotated[AnyUrl, UrlConstraints(allowed_schemes=["awssqs"])]
 
 
 class SQSHandler(BaseModel):
+    """SQS handler for the Saleor App Framework."""
+
     target_url: SQSUrl
     handler: WebHookHandlerSignature

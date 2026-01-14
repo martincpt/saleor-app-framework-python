@@ -1,3 +1,5 @@
+"""Manifest schemas for the Saleor App Framework."""
+
 from enum import Enum
 from typing import List, Optional, Union
 
@@ -7,11 +9,15 @@ from saleor_app.schemas.utils import LazyPath, LazyUrl
 
 
 class TargetType(str, Enum):
+    """Target types for the Saleor App Framework."""
+
     POPUP = "POPUP"
     APP_PAGE = "APP_PAGE"
 
 
 class MountType(str, Enum):
+    """Mount types for the Saleor App Framework."""
+
     CUSTOMER_DETAILS_MORE_ACTIONS = "CUSTOMER_DETAILS_MORE_ACTIONS"
     CUSTOMER_OVERVIEW_CREATE = "CUSTOMER_OVERVIEW_CREATE"
     CUSTOMER_OVERVIEW_MORE_ACTIONS = "CUSTOMER_OVERVIEW_MORE_ACTIONS"
@@ -33,6 +39,8 @@ class MountType(str, Enum):
 
 
 class Extension(BaseModel):
+    """Extension for the Saleor App Framework."""
+
     label: str
     mount: MountType
     target: TargetType
@@ -48,6 +56,8 @@ class Extension(BaseModel):
 
 
 class Manifest(BaseModel):
+    """Manifest for the Saleor App Framework."""
+
     id: str
     permissions: List[str]
     name: str
