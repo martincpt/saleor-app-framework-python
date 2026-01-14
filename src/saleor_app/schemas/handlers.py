@@ -1,7 +1,7 @@
 from enum import Enum
-from typing import Awaitable, Callable, List, Optional
+from typing import Annotated, Awaitable, Callable, List, Optional
 
-from pydantic import AnyHttpUrl, BaseModel
+from pydantic import AnyUrl, BaseModel, UrlConstraints
 
 from saleor_app.schemas.core import DomainName
 from saleor_app.schemas.webhook import Webhook
@@ -120,8 +120,7 @@ class SaleorEventType(str, Enum):
 WebHookHandlerSignature = Optional[Callable[[List[Webhook], DomainName], Awaitable]]
 
 
-class SQSUrl(AnyHttpUrl):
-    allowed_schemes = {"awssqs"}
+SQSUrl = Annotated[AnyUrl, UrlConstraints(allowed_schemes=["awssqs"])]
 
 
 class SQSHandler(BaseModel):

@@ -1,6 +1,8 @@
+from typing import Iterable
 from unittest.mock import AsyncMock, Mock, create_autospec
 
 import pytest
+from fastapi.testclient import TestClient
 
 from saleor_app.app import SaleorApp
 from saleor_app.schemas.handlers import SaleorEventType, SQSUrl
@@ -75,6 +77,13 @@ def saleor_app(manifest):
     return saleor_app
 
 
+@pytest.fixture()
+def client(saleor_app: SaleorApp) -> Iterable[TestClient]:
+    """Test client fixture."""
+    with TestClient(saleor_app) as client:
+        yield client
+
+
 @pytest.fixture
 def saleor_app_with_webhooks(saleor_app, get_webhook_details, webhook_handler):
     saleor_app.include_webhook_router(get_webhook_details)
@@ -88,27 +97,11 @@ def saleor_app_with_webhooks(saleor_app, get_webhook_details, webhook_handler):
         webhook_handler
     )
     saleor_app.webhook_router.sqs_event_route(
-        SQSUrl(
-            None,
-            scheme="awssqs",
-            user="username",
-            password="password",
-            host="localstack",
-            port="4566",
-            path="/account_id/order_created",
-        ),
+        SQSUrl("awssqs://username:password@localstack:4566/account_id/order_created"),
         SaleorEventType.ORDER_CREATED,
     )(webhook_handler)
     saleor_app.webhook_router.sqs_event_route(
-        SQSUrl(
-            None,
-            scheme="awssqs",
-            user="username",
-            password="password",
-            host="localstack",
-            port="4566",
-            path="/account_id/order_updated",
-        ),
+        SQSUrl("awssqs://username:password@localstack:4566/account_id/order_updated"),
         SaleorEventType.ORDER_UPDATED,
     )(webhook_handler)
     return saleor_app

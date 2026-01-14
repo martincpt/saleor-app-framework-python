@@ -34,7 +34,7 @@ async def install(
     events = defaultdict(list)
     if hasattr(request.app, "webhook_router"):
         for event_type in request.app.webhook_router.http_routes:
-            events[request.url_for("handle-webhook")].append(
+            events[str(request.url_for("handle-webhook"))].append(
                 (
                     event_type,
                     request.app.webhook_router.http_routes_subscriptions.get(

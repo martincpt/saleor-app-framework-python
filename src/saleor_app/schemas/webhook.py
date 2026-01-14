@@ -2,15 +2,15 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Optional, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from pydantic.fields import Field
-from pydantic.main import Extra
 
 
 class WebhookV1(BaseModel):
-    class Config:
-        extra = Extra.allow
-        allow_mutation = False
+    model_config: ConfigDict = ConfigDict(
+        extra="allow",
+        frozen=True,
+    )
 
 
 class PrincipalType(str, Enum):
@@ -33,18 +33,20 @@ class WebhookMeta(BaseModel):
 class WebhookV2(BaseModel):
     meta: WebhookMeta
 
-    class Config:
-        extra = Extra.allow
-        allow_mutation = False
+    model_config: ConfigDict = ConfigDict(
+        extra="allow",
+        frozen=True,
+    )
 
 
 class WebhookV3(BaseModel):
     meta: WebhookMeta
     payload: Any
 
-    class Config:
-        extra = Extra.forbid
-        allow_mutation = False
+    model_config: ConfigDict = ConfigDict(
+        extra="forbid",
+        frozen=True,
+    )
 
 
 Webhook = Union[WebhookV3, WebhookV2, WebhookV1]

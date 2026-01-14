@@ -11,6 +11,20 @@ Supported features:
 
 More on usage You can find in the official [Documentation](https://mirumee.github.io/saleor-app-framework-python/)
 
+## Fork notes
+
+The original repository is pretty much stale and unmaintained. This fork aims to bring it up to date with the latest changes in the Saleor ecosystem.
+
+### Important changes
+
+- Original project used poetry but this fork now uses uv
+- Minimum python version is now 3.12
+- Tox will be disabled for a while (not sure if it will be re-enabled)
+- Pydantic will be updated to v2
+- Pre-commit hooks are planned to be more strict
+- Ruff is planned to use
+- Httpx probably will be deprecated
+
 ## Installation
 
 To use saleor app framework simply install it by

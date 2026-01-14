@@ -1,4 +1,6 @@
 from fastapi import Request
+from pydantic import GetCoreSchemaHandler
+from pydantic_core import core_schema
 from starlette.routing import NoMatchFound
 
 from saleor_app.errors import ConfigurationError
@@ -14,12 +16,24 @@ class LazyUrl(str):
         self.name = name
 
     @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
+    def __get_pydantic_core_schema__(cls, source_type, handler: GetCoreSchemaHandler):
+        python_schema = core_schema.union_schema(
+            [
+                core_schema.is_instance_schema(cls),
+                core_schema.str_schema(),
+            ]
+        )
+
+        return core_schema.no_info_after_validator_function(
+            cls.validate,
+            python_schema,
+        )
 
     @classmethod
     def validate(cls, v):
-        return v
+        if isinstance(v, cls):
+            return v
+        return cls(v)
 
     def resolve(self):
         return self.request.url_for(self.name)
@@ -27,7 +41,7 @@ class LazyUrl(str):
     def __call__(self, request: Request):
         self.request = request
         try:
-            return self.resolve()
+            return str(self.resolve())
         except NoMatchFound:
             raise ConfigurationError(
                 f"Failed to resolve a lazy url, check if an endpoint named '{self.name}' is defined."

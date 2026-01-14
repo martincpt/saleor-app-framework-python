@@ -21,6 +21,7 @@ async def install_app(
     events: Dict[str, Tuple[SaleorEventType, str]],
     use_insecure_saleor_http: bool,
 ):
+    print("install_app Saleor app...")
     alphabet = string.ascii_letters + string.digits
     secret_key = "".join(secrets.choice(alphabet) for _ in range(20))
 

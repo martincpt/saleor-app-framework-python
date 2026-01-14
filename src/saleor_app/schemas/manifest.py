@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import List, Optional, Union
 
-from pydantic import AnyHttpUrl, BaseModel, Field
+from pydantic import AnyHttpUrl, BaseModel, ConfigDict, Field
 
 from saleor_app.schemas.utils import LazyPath, LazyUrl
 
@@ -37,10 +37,14 @@ class Extension(BaseModel):
     mount: MountType
     target: TargetType
     permissions: List[str]
-    url: Union[AnyHttpUrl, LazyUrl, LazyPath]
+    url: Union[AnyHttpUrl, LazyUrl, LazyPath] = Field(
+        union_mode="left_to_right",
+    )
 
-    class Config:
-        allow_population_by_field_name = True
+    model_config: ConfigDict = ConfigDict(
+        populate_by_name=True,
+        validate_by_name=True,
+    )
 
 
 class Manifest(BaseModel):
@@ -51,16 +55,34 @@ class Manifest(BaseModel):
     about: str
     extensions: List[Extension]
     data_privacy: str = Field(..., alias="dataPrivacy")
-    data_privacy_url: Union[AnyHttpUrl, LazyUrl] = Field(..., alias="dataPrivacyUrl")
-    homepage_url: Union[AnyHttpUrl, LazyUrl] = Field(..., alias="homepageUrl")
-    support_url: Union[AnyHttpUrl, LazyUrl] = Field(..., alias="supportUrl")
-    configuration_url: Optional[Union[AnyHttpUrl, LazyUrl]] = Field(
-        None, alias="configurationUrl"
+    data_privacy_url: Union[AnyHttpUrl, LazyUrl] = Field(
+        alias="dataPrivacyUrl",
+        union_mode="left_to_right",
     )
-    app_url: Union[AnyHttpUrl, LazyUrl] = Field(..., alias="appUrl")
+    homepage_url: Union[AnyHttpUrl, LazyUrl] = Field(
+        alias="homepageUrl",
+        union_mode="left_to_right",
+    )
+    support_url: Union[AnyHttpUrl, LazyUrl] = Field(
+        alias="supportUrl",
+        union_mode="left_to_right",
+    )
+    configuration_url: Optional[Union[AnyHttpUrl, LazyUrl]] = Field(
+        default=None,
+        alias="configurationUrl",
+        union_mode="left_to_right",
+    )
+    app_url: Union[AnyHttpUrl, LazyUrl] = Field(
+        alias="appUrl",
+        union_mode="left_to_right",
+    )
     token_target_url: Union[AnyHttpUrl, LazyUrl] = Field(
-        LazyUrl("app-install"), alias="tokenTargetUrl"
+        default=LazyUrl("app-install"),
+        alias="tokenTargetUrl",
+        union_mode="left_to_right",
     )
 
-    class Config:
-        allow_population_by_field_name = True
+    model_config: ConfigDict = ConfigDict(
+        populate_by_name=True,
+        validate_by_name=True,
+    )
