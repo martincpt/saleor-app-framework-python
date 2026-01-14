@@ -17,13 +17,12 @@ The original repository is pretty much stale and unmaintained. This fork aims to
 
 ### Important changes
 
-- Original project used poetry but this fork now uses uv
+- Project now uses uv instead of poetry
 - Minimum python version is now 3.12
-- Tox will be disabled for a while (not sure if it will be re-enabled)
 - Pydantic will be updated to v2
 - Pre-commit hooks are planned to be more strict
-- Ruff is planned to use
-- Httpx probably will be deprecated
+- Ruff and mypy is planned to use
+- Tox will be disabled for a while (not sure if it will be re-enabled)
 
 ## Installation
 

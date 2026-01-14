@@ -32,6 +32,53 @@ dev = [
     "pytest-mock>=3.15.1",
 ]
 
+[tool.black]
+line-length = 88
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+lint.select = ["ALL"]
+lint.ignore = [
+    "ANN002",  # Missing type annotation for *{name}
+    "ANN003",  # Missing type annotation for **{name}
+    "ANN101",  # Missing type annotation for {name} in method
+    "ANN102",  # Missing type annotation for {name} in classmethod
+    "ANN401",  # Dynamically typed expressions (typing.Any) are disallowed in {name}
+    "D104",    # Missing docstring in public package
+    "D401",    # First line of docstring should be in imperative mood
+    "D402",    # First line should not be the function's signature
+    "D404",    # First word of the docstring should not be `This`
+    "D417",    # Missing argument descriptions in Docstring (If we use type annotations, we don't need to describe the arguments)
+    "DTZ005",  # The use of `datetime.datetime.now()` without tzinfo must be followed by `.replace(tzinfo=)` or `.astimezone()`
+    "DTZ007",  # The use of `datetime.datetime.strptime()` without %z must be followed by `.replace(tzinfo=)` or `.astimezone()`
+    "FBT001",  # Boolean positional argument in function definition
+    "FBT002",  # Boolean default value in function definition
+    "G004",    # Logging statement uses f-string
+    "PD901",   # df is a bad variable name. Be kinder to your future self.
+    "PLR0913", # Too many arguments to function call (N > 5)
+    "PLW0603", # Using the global statement to update `X` is discouraged
+    "PTH123",  # `open()` should be replaced by `Path.open()`
+    "S101",    # Use of assert detected
+    "S603",    # `subprocess` call: check for execution of untrusted input
+    "S607",    # Starting a process with a partial executable path
+    "SLF001",  # Private member accessed
+    "TD002",   # Missing author in TODO; try: `# TODO(<author_name>): ...`
+    "TD003",   # Missing issue link on the line following this TODO
+    "TRY400",  # Use `logging.exception` instead of `logging.error`
+    # So we can use __all__ = [MyClass.__name__]
+    "PLE0604", # Invalid object in `__all__`, must contain only strings
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["ARG001", "PLR2004"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 20
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -39,10 +86,31 @@ addopts = "-s -v --durations=0 --disable-warnings --tb short"
 cache_dir = ".cache/pytest_cache"
 asyncio_mode = "auto"
 
-[tool.black]
-line-length = 88
+[tool.coverage.run]
+branch = true
+source = ["src"]
+command_line = "-m pytest"
+omit = ['src/tests/']
 
-[tool.isort]
+[tool.coverage.report]
+show_missing = true
+exclude_lines = [
+    'if *TYPE_CHECKING*:$',
+    'if t.TYPE_CHECKING:$',
+    '\.\.\.$',
+    'continue$',
+    'break$',
+    'pass$',
+    'message = *',
+    'raise *',
+    'raise$',
+]
+
+[tool.coverage.xml]
+output = "coverage.xml"
+
+
+[tool.isort] # this can be removed once ruff installed
 multi_line_output = 3
 include_trailing_comma = true
 force_grid_wrap = 0

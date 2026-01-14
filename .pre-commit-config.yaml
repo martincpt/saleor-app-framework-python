@@ -16,3 +16,13 @@ repos:
     hooks:
       - id: isort
         name: isort (python)
+
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest
+        stages: [pre-commit]
+        language: system
+        entry: pytest -v --showlocals --disable-warnings
+        types: [python]
+        pass_filenames: false
