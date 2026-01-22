@@ -21,9 +21,11 @@ The original repository is pretty much stale and unmaintained. This fork aims to
 - Minimum python version is now 3.12
 - Pydantic will be updated to v2 (TODO add pydantic v2 as dependency then its done)
 - Pre-commit hooks are planned to be more strict
+- Github ci is planned to be changed to use pre-commit
 - Flake8 and isort will be replaced by Ruff
 - mypy is planned to use
 - Tox will be disabled for a while (not sure if it will be re-enabled)
+- Documentation should be updated
 
 ## Installation
 
