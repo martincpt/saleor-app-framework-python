@@ -70,10 +70,14 @@ lint.ignore = [
     "B008",    # Do not perform function call {name} in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
     # So we can use __all__ = [MyClass.__name__]
     "PLE0604", # Invalid object in `__all__`, must contain only strings
-    # Most common errors from forked project, we surpress for now:
+    # Most common errors from forked project, we surpress for now,
+    # but they are planned to be addressed in the future:
     "D100",
     "D101",
     "D102",
+    "D103",
+    "D400",
+    "D415",
     "ANN001",
     "ANN201",
     "ANN202",
