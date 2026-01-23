@@ -1,4 +1,4 @@
-from typing import Awaitable, Callable, Optional
+from collections.abc import Awaitable, Callable
 
 from fastapi import APIRouter, FastAPI
 
@@ -16,7 +16,7 @@ class SaleorApp(FastAPI):
         validate_domain: Callable[[DomainName], Awaitable[bool]],
         save_app_data: Callable[[DomainName, str, WebhookData], Awaitable],
         use_insecure_saleor_http: bool = False,
-        development_auth_token: Optional[str] = None,
+        development_auth_token: str | None = None,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -30,12 +30,15 @@ class SaleorApp(FastAPI):
         self.development_auth_token = development_auth_token
 
         self.configuration_router = APIRouter(
-            prefix="/configuration", tags=["configuration"]
+            prefix="/configuration",
+            tags=["configuration"],
         )
 
     def include_saleor_app_routes(self):
         self.configuration_router.get(
-            "/manifest", response_model=Manifest, name="manifest"
+            "/manifest",
+            response_model=Manifest,
+            name="manifest",
         )(manifest)
         self.configuration_router.post(
             "/install",
@@ -49,7 +52,8 @@ class SaleorApp(FastAPI):
         self.include_router(self.configuration_router)
 
     def include_webhook_router(
-        self, get_webhook_details: Callable[[DomainName], Awaitable[WebhookData]]
+        self,
+        get_webhook_details: Callable[[DomainName], Awaitable[WebhookData]],
     ):
         self.get_webhook_details = get_webhook_details
         self.webhook_router = WebhookRouter(

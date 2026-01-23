@@ -1,15 +1,14 @@
-from typing import Any, Dict, List, Optional, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 
 class GraphQLError(Exception):
-    """
-    Raised on Saleor GraphQL errors
-    """
+    """Raised on Saleor GraphQL errors"""
 
     def __init__(
         self,
-        errors: Sequence[Dict[str, Any]],
-        response_data: Optional[Dict[str, Any]] = None,
+        errors: Sequence[dict[str, Any]],
+        response_data: dict[str, Any] | None = None,
     ):
         self.errors = errors
         self.response_data = response_data
@@ -20,8 +19,8 @@ class GraphQLError(Exception):
         )
 
 
-class IgnoredPrincipal(Exception):
+class IgnoredPrincipalError(Exception):
     message = "Ignore webhook with {} principal ids."
 
-    def __init__(self, principal_ids: List[str]):
+    def __init__(self, principal_ids: list[str]):
         super().__init__(self.message.format(",".join(principal_ids)))

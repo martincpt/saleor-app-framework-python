@@ -1,44 +1,40 @@
-import json
+from collections import defaultdict
 from unittest.mock import AsyncMock
 
-from httpx import AsyncClient
+from fastapi.testclient import TestClient
 
+from saleor_app.app import SaleorApp
 from saleor_app.deps import SALEOR_DOMAIN_HEADER
 from saleor_app.schemas.handlers import SaleorEventType
-from saleor_app.schemas.manifest import Manifest
 
 
-async def test_manifest(saleor_app):
-    base_url = "http://test_app.saleor.local"
-
-    async with AsyncClient(app=saleor_app, base_url=base_url) as ac:
-        response = await ac.get("configuration/manifest")
-
-    manifest = saleor_app.manifest.dict(by_alias=True)
-    manifest["appUrl"] = f"{base_url}/configuration"
-    manifest["tokenTargetUrl"] = f"{base_url}/configuration/install"
-    manifest["configurationUrl"] = None
-    manifest["extensions"][0]["url"] = "/extension"
-
-    manifest = json.loads(json.dumps(Manifest(**manifest).dict(by_alias=True)))
+async def test_manifest(client: TestClient, saleor_app: SaleorApp) -> None:
+    response = client.get("configuration/manifest")
 
     assert response.status_code == 200
-    assert response.json() == manifest
+
+    result = response.json()
+    expected = saleor_app.manifest.model_dump(mode="json", by_alias=True)
+
+    assert result == expected
 
 
-async def test_install(saleor_app_with_webhooks, get_webhook_details, monkeypatch):
+async def test_install(
+    client: TestClient,
+    saleor_app_with_webhooks,
+    get_webhook_details,
+    monkeypatch,
+) -> None:
     install_app_mock = AsyncMock()
     monkeypatch.setattr("saleor_app.endpoints.install_app", install_app_mock)
-    base_url = "http://test_app.saleor.local"
 
     saleor_app_with_webhooks.validate_domain = AsyncMock(return_value=True)
 
-    async with AsyncClient(app=saleor_app_with_webhooks, base_url=base_url) as ac:
-        response = await ac.post(
-            "configuration/install",
-            json={"auth_token": "saleor-app-token"},
-            headers={SALEOR_DOMAIN_HEADER: "example.com"},
-        )
+    response = client.post(
+        url="configuration/install",
+        json={"auth_token": "saleor-app-token"},
+        headers={SALEOR_DOMAIN_HEADER: "example.com"},
+    )
 
     assert response.status_code == 200
 
@@ -46,18 +42,21 @@ async def test_install(saleor_app_with_webhooks, get_webhook_details, monkeypatc
         saleor_domain="example.com",
         auth_token="saleor-app-token",
         manifest=saleor_app_with_webhooks.manifest,
-        events={
-            "awssqs://username:password@localstack:4566/account_id/order_created": [
-                (SaleorEventType.ORDER_CREATED, None),
-            ],
-            "awssqs://username:password@localstack:4566/account_id/order_updated": [
-                (SaleorEventType.ORDER_UPDATED, None),
-            ],
-            "http://test_app.saleor.local/webhook": [
-                (SaleorEventType.PRODUCT_CREATED, None),
-                (SaleorEventType.PRODUCT_UPDATED, None),
-                (SaleorEventType.PRODUCT_DELETED, None),
-            ],
-        },
+        events=defaultdict(
+            list,
+            {
+                "awssqs://username:password@localstack:4566/account_id/order_created": [
+                    (SaleorEventType.ORDER_CREATED, None),
+                ],
+                "awssqs://username:password@localstack:4566/account_id/order_updated": [
+                    (SaleorEventType.ORDER_UPDATED, None),
+                ],
+                "http://testserver/webhook": [
+                    (SaleorEventType.PRODUCT_CREATED, None),
+                    (SaleorEventType.PRODUCT_UPDATED, None),
+                    (SaleorEventType.PRODUCT_DELETED, None),
+                ],
+            },
+        ),
         use_insecure_saleor_http=False,
     )

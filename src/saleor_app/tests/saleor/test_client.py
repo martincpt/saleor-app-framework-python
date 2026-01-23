@@ -9,7 +9,13 @@ from saleor_app.saleor.exceptions import GraphQLError
 
 
 @pytest.mark.parametrize(
-    "auth_token, timeout", ((None, None), (None, 5), ("token", None), ("token", 10))
+    ("auth_token", "timeout"),
+    [
+        (None, None),
+        (None, 5),
+        ("token", None),
+        ("token", 10),
+    ],
 )
 async def test__init__(auth_token, timeout):
     kwargs = {
@@ -42,7 +48,8 @@ async def test_close(mocker):
 
 async def test_context_manager(mocker):
     async with SaleorClient(
-        saleor_url="http://saleor.local", user_agent="test"
+        saleor_url="http://saleor.local",
+        user_agent="test",
     ) as saleor:
         spy = mocker.spy(saleor, "close")
         assert isinstance(saleor, SaleorClient)
@@ -53,10 +60,11 @@ async def test_context_manager(mocker):
 async def test_execute(monkeypatch):
     mock_session = AsyncMock(aiohttp.ClientSession)
     mock_session.post.return_value.__aenter__.return_value.json.return_value = {
-        "data": "response_data"
+        "data": "response_data",
     }
     async with SaleorClient(
-        saleor_url="http://saleor.local", user_agent="test"
+        saleor_url="http://saleor.local",
+        user_agent="test",
     ) as saleor:
         monkeypatch.setattr(saleor, "session", mock_session, raising=True)
         assert (
@@ -65,7 +73,8 @@ async def test_execute(monkeypatch):
         )
 
     mock_session.post.assert_called_once_with(
-        url="/graphql/", json={"query": "QUERY", "variables": {"test": "value"}}
+        url="/graphql/",
+        json={"query": "QUERY", "variables": {"test": "value"}},
     )
 
 
@@ -76,7 +85,8 @@ async def test_execute_error(monkeypatch):
         "errors": [{"message": "there are errors"}],
     }
     async with SaleorClient(
-        saleor_url="http://saleor.local", user_agent="test"
+        saleor_url="http://saleor.local",
+        user_agent="test",
     ) as saleor:
         monkeypatch.setattr(saleor, "session", mock_session, raising=True)
         with pytest.raises(GraphQLError) as excinfo:

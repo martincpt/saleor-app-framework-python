@@ -1,3 +1,5 @@
+"""Core schemas for the Saleor App Framework."""
+
 from enum import Enum
 
 from pydantic import BaseModel
@@ -8,15 +10,21 @@ Url = str
 
 
 class WebhookData(BaseModel):
+    """Webhook data for the Saleor App Framework."""
+
     webhook_id: str
     webhook_secret_key: str
 
 
 class InstallData(BaseModel):
+    """Installation data for the Saleor App Framework."""
+
     auth_token: str
 
 
 class SaleorPermissions(str, Enum):
+    """Permissions for the Saleor App Framework."""
+
     HANDLE_CHECKOUTS = "HANDLE_CHECKOUTS"
     HANDLE_PAYMENTS = "HANDLE_PAYMENTS"
     HANDLE_TAXES = "HANDLE_TAXES"

@@ -1,6 +1,8 @@
+from collections.abc import Iterable
 from unittest.mock import AsyncMock, Mock, create_autospec
 
 import pytest
+from fastapi.testclient import TestClient
 
 from saleor_app.app import SaleorApp
 from saleor_app.schemas.handlers import SaleorEventType, SQSUrl
@@ -9,7 +11,7 @@ from saleor_app.schemas.utils import LazyPath, LazyUrl
 from saleor_app.settings import AWSSettings
 
 
-@pytest.fixture
+@pytest.fixture()
 def aws_settings():
     return AWSSettings(
         account_id="",
@@ -19,7 +21,7 @@ def aws_settings():
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def manifest():
     return Manifest(
         name="Sample Saleor App",
@@ -39,12 +41,12 @@ def manifest():
                 target="POPUP",
                 permissions=["MANAGE_PRODUCTS"],
                 url=LazyPath("extension"),
-            )
+            ),
         ],
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def get_webhook_details():
     return AsyncMock()
 
@@ -53,12 +55,12 @@ async def _webhook_handler():
     pass
 
 
-@pytest.fixture
+@pytest.fixture()
 def webhook_handler():
     return create_autospec(_webhook_handler)
 
 
-@pytest.fixture
+@pytest.fixture()
 def saleor_app(manifest):
     saleor_app = SaleorApp(
         manifest=manifest,
@@ -75,51 +77,42 @@ def saleor_app(manifest):
     return saleor_app
 
 
-@pytest.fixture
+@pytest.fixture()
+def client(saleor_app: SaleorApp) -> Iterable[TestClient]:
+    """Test client fixture."""
+    with TestClient(saleor_app) as client:
+        yield client
+
+
+@pytest.fixture()
 def saleor_app_with_webhooks(saleor_app, get_webhook_details, webhook_handler):
     saleor_app.include_webhook_router(get_webhook_details)
     saleor_app.webhook_router.http_event_route(SaleorEventType.PRODUCT_CREATED)(
-        webhook_handler
+        webhook_handler,
     )
     saleor_app.webhook_router.http_event_route(SaleorEventType.PRODUCT_UPDATED)(
-        webhook_handler
+        webhook_handler,
     )
     saleor_app.webhook_router.http_event_route(SaleorEventType.PRODUCT_DELETED)(
-        webhook_handler
+        webhook_handler,
     )
     saleor_app.webhook_router.sqs_event_route(
-        SQSUrl(
-            None,
-            scheme="awssqs",
-            user="username",
-            password="password",
-            host="localstack",
-            port="4566",
-            path="/account_id/order_created",
-        ),
+        SQSUrl("awssqs://username:password@localstack:4566/account_id/order_created"),
         SaleorEventType.ORDER_CREATED,
     )(webhook_handler)
     saleor_app.webhook_router.sqs_event_route(
-        SQSUrl(
-            None,
-            scheme="awssqs",
-            user="username",
-            password="password",
-            host="localstack",
-            port="4566",
-            path="/account_id/order_updated",
-        ),
+        SQSUrl("awssqs://username:password@localstack:4566/account_id/order_updated"),
         SaleorEventType.ORDER_UPDATED,
     )(webhook_handler)
     return saleor_app
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_request(saleor_app):
     return Mock(app=saleor_app, body=AsyncMock(return_value=b"request_body"))
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_request_with_metadata(saleor_app):
     return AsyncMock(
         app=saleor_app,
@@ -130,8 +123,8 @@ def mock_request_with_metadata(saleor_app):
                         "issued_at": "2022-03-09T14:42:00.756412+00:00",
                         "version": "3.1.0-a.25",
                         "issuing_principal": {"id": "VXNlcjox", "type": "user"},
-                    }
-                }
-            ]
+                    },
+                },
+            ],
         ),
     )

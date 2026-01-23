@@ -9,10 +9,11 @@ from saleor_app.schemas.core import WebhookData
 async def test_install_app(mocker, manifest):
     mock_saleor_client = AsyncMock(SaleorClient)
     mock_saleor_client.__aenter__.return_value.execute.return_value = {
-        "webhookCreate": {"webhook": {"id": "123"}}
+        "webhookCreate": {"webhook": {"id": "123"}},
     }
     mock_get_client_for_app = mocker.patch(
-        "saleor_app.install.get_client_for_app", return_value=mock_saleor_client
+        "saleor_app.install.get_client_for_app",
+        return_value=mock_saleor_client,
     )
     mocker.patch("saleor_app.install.secrets.choice", return_value="A")
 
@@ -25,7 +26,9 @@ async def test_install_app(mocker, manifest):
     ) == WebhookData(webhook_id="123", webhook_secret_key="A" * 20)
 
     mock_get_client_for_app.assert_called_once_with(
-        "http://saleor_domain", manifest=manifest, auth_token="test_token"
+        "http://saleor_domain",
+        manifest=manifest,
+        auth_token="test_token",
     )
 
     assert mock_saleor_client.__aenter__.return_value.execute.call_count == 2
@@ -37,7 +40,7 @@ async def test_install_app(mocker, manifest):
                 "events": ["TEST_EVENT_1"],
                 "name": f"{manifest.name}",
                 "secretKey": "A" * 20,
-            }
+            },
         },
     )
 
@@ -49,7 +52,7 @@ async def test_install_app(mocker, manifest):
                 "events": ["TEST_EVENT_2"],
                 "name": f"{manifest.name}",
                 "secretKey": "A" * 20,
-            }
+            },
         },
     )
 
@@ -57,10 +60,11 @@ async def test_install_app(mocker, manifest):
 async def test_install_app_secure_https(mocker, manifest):
     mock_saleor_client = AsyncMock(SaleorClient)
     mock_saleor_client.__aenter__.return_value.execute.return_value = {
-        "webhookCreate": {"webhook": {"id": "123"}}
+        "webhookCreate": {"webhook": {"id": "123"}},
     }
     mock_get_client_for_app = mocker.patch(
-        "saleor_app.install.get_client_for_app", return_value=mock_saleor_client
+        "saleor_app.install.get_client_for_app",
+        return_value=mock_saleor_client,
     )
     mocker.patch("saleor_app.install.secrets.choice", return_value="A")
     assert await install_app(
@@ -72,5 +76,7 @@ async def test_install_app_secure_https(mocker, manifest):
     ) == WebhookData(webhook_id="123", webhook_secret_key="A" * 20)
 
     mock_get_client_for_app.assert_called_once_with(
-        "https://saleor_domain", manifest=manifest, auth_token="test_token"
+        "https://saleor_domain",
+        manifest=manifest,
+        auth_token="test_token",
     )

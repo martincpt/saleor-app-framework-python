@@ -1,4 +1,4 @@
-# Welcome to Saleor App Framework 
+# Welcome to Saleor App Framework
 
 You are reading the Saleor App Framework (Python) documentation. This document should help you to quickly bootstrap a 3rd Party Saleor App, read more about those [:saleor-saleor: Saleor's documentation](https://docs.saleor.io/docs/3.0/developer/extending/apps/key-concepts){ target=_blank }.
 
@@ -16,11 +16,11 @@ poetry add git+https://github.com/mirumee/saleor-app-framework-python.git@main
 ```
 
 1. Not on PyPi yet, you must install from git
-   
+
 Using Pip:
 
 ```bash
-pip install git+https://github.com/mirumee/saleor-app-framework-python.git@main 
+pip install git+https://github.com/mirumee/saleor-app-framework-python.git@main
 ```
 
 ### Create the Saleor app
@@ -187,7 +187,7 @@ async def store_app_data(
     print("Called store_app_data")
     print(saleor_domain)
     print(auth_token)
-    print(webhook_data) 
+    print(webhook_data)
 
 
 manifest = Manifest(
@@ -244,7 +244,7 @@ uvicorn simple_app.app:app --host 0.0.0.0 --port 5000 --reload
 
 Or create a `simple_app/__main__.py` with:
 
-```python linenums="1" 
+```python linenums="1"
 import uvicorn
 
 

@@ -46,7 +46,7 @@ async def test_saleor_token_missing(mock_request):
 async def test_verify_saleor_token(mock_request, mocker):
     mock_saleor_client = AsyncMock(SaleorClient)
     mock_saleor_client.__aenter__.return_value.execute.return_value = {
-        "tokenVerify": {"isValid": True}
+        "tokenVerify": {"isValid": True},
     }
     mocker.patch("saleor_app.deps.get_client_for_app", return_value=mock_saleor_client)
     assert await verify_saleor_token(mock_request, "saleor_domain", "token")
@@ -55,7 +55,7 @@ async def test_verify_saleor_token(mock_request, mocker):
 async def test_verify_saleor_token_invalid(mock_request, mocker):
     mock_saleor_client = AsyncMock(SaleorClient)
     mock_saleor_client.__aenter__.return_value.execute.return_value = {
-        "tokenVerify": {"isValid": False}
+        "tokenVerify": {"isValid": False},
     }
     mocker.patch("saleor_app.deps.get_client_for_app", return_value=mock_saleor_client)
     with pytest.raises(HTTPException) as excinfo:
@@ -70,7 +70,7 @@ async def test_verify_saleor_token_invalid(mock_request, mocker):
 async def test_verify_saleor_token_saleor_error(mock_request, mocker):
     mock_saleor_client = AsyncMock(SaleorClient)
     mock_saleor_client.__aenter__.return_value.execute.side_effect = GraphQLError(
-        "error"
+        "error",
     )
     mocker.patch("saleor_app.deps.get_client_for_app", return_value=mock_saleor_client)
     assert not await verify_saleor_token(mock_request, "saleor_domain", "token")
@@ -92,7 +92,8 @@ async def test_verify_saleor_domain_invalid(mock_request):
 async def test_verify_webhook_signature(get_webhook_details, mock_request, mocker):
     mock_request.app.include_webhook_router(get_webhook_details)
     mock_request.app.get_webhook_details.return_value = WebhookData(
-        webhook_id="webhook_id", webhook_secret_key="webhook_secret_key"
+        webhook_id="webhook_id",
+        webhook_secret_key="webhook_secret_key",
     )
     mock_hmac_new = mocker.patch("saleor_app.deps.hmac.new")
     mock_hmac_new.return_value.hexdigest.return_value = "test_signature"
@@ -101,16 +102,21 @@ async def test_verify_webhook_signature(get_webhook_details, mock_request, mocke
         is None
     )
     mock_hmac_new.assert_called_once_with(
-        b"webhook_secret_key", b"request_body", hashlib.sha256
+        b"webhook_secret_key",
+        b"request_body",
+        hashlib.sha256,
     )
 
 
 async def test_verify_webhook_signature_invalid(
-    get_webhook_details, mock_request, mocker
+    get_webhook_details,
+    mock_request,
+    mocker,
 ):
     mock_request.app.include_webhook_router(get_webhook_details)
     mock_request.app.get_webhook_details.return_value = WebhookData(
-        webhook_id="webhook_id", webhook_secret_key="webhook_secret_key"
+        webhook_id="webhook_id",
+        webhook_secret_key="webhook_secret_key",
     )
     mock_hmac_new = mocker.patch("saleor_app.deps.hmac.new")
     mock_hmac_new.return_value.hexdigest.return_value = "test_signature"

@@ -36,12 +36,14 @@ class SaleorClient:
 
     async def execute(self, query, variables=None):
         async with self.session.post(
-            url="/graphql/", json={"query": query, "variables": variables}
+            url="/graphql/",
+            json={"query": query, "variables": variables},
         ) as resp:
             response_data = await resp.json()
             if errors := response_data.get("errors"):
                 exc = GraphQLError(
-                    errors=errors, response_data=response_data.get("data")
+                    errors=errors,
+                    response_data=response_data.get("data"),
                 )
                 logger.error("Error when executing a GraphQL call to Saleor")
                 logger.debug(str(exc))
