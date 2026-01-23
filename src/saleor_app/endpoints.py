@@ -19,6 +19,13 @@ logger = logging.getLogger(__name__)
 
 
 async def manifest(request: Request):
+    # It's probably not the best design if we have to import SaleorApp here.
+    # We either need to redesign the module architecture or
+    # create a properly annotated dependency here.
+    from saleor_app.app import SaleorApp
+
+    assert isinstance(request.app, SaleorApp)
+
     manifest = request.app.manifest
     for name, field in manifest:
         if isinstance(field, LazyUrl):
@@ -35,8 +42,9 @@ async def install(
     _domain_is_valid=Depends(verify_saleor_domain),
     saleor_domain=Depends(saleor_domain_header),
 ):
-    # It's probably not the best design
-    # if we have to import SaleorApp here
+    # It's probably not the best design if we have to import SaleorApp here.
+    # We either need to redesign the module architecture or
+    # create a properly annotated dependency here.
     from saleor_app.app import SaleorApp
 
     assert isinstance(request.app, SaleorApp)
