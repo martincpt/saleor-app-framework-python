@@ -17,33 +17,32 @@ The original repository is pretty much stale and unmaintained. This fork aims to
 
 ### Important changes
 
-- Project now uses uv instead of poetry
-- Minimum python version is now 3.12
-- Pydantic has been updated to v2
-- Pre-commit configuration has been changed
-  - Flake8 and isort is replaced by Ruff
-  - MyPy has been added
-- Github ci is planned to be changed to use pre-commit
-- Tox has been removed a while ago (not sure if it will be re-enabled)
+- **Dependency Management**
+  - The project now utilizes uv for dependency management, replacing poetry.
+
+- **Python Version**
+  - The minimum required Python version is now 3.12.
+
+- **Pydantic**:
+  - Updated to version 2.
+
+- **Pre-commit Configuration**:
+  - Flake8 and isort have been replaced by Ruff.
+  - MyPy has been added.
+
+- **GitHub CI**
+  - Now configured to use pre-commit.
+
+- **Tox**
+  - Tox has been removed, with possible future reconsideration for re-enablement.
 
 ### TODO
 
-- Change github ci
-- Following annotation related ruff ignores should be resolved and removed from pyproject.toml
-  - ANN001
-  - ANN201
-  - ANN202
-  - ANN204
-- Following docstring related ruff ignores should be resolved and removed from pyproject.toml
-  - D100
-  - D101
-  - D102
-  - D103
-  - D105
-  - D107
-  - D400
-  - D415
-- Documentation should be updated
+- Resolve and Remove Ruff Ignores in pyproject.toml
+  - Annotation-related: ANN001, ANN201, ANN202, ANN204
+  - Docstring-related: D100, D101, D102, D103, D105, D107, D400, D415
+
+- Update documentation and README.md
 
 ### Minimum working example
 
