@@ -24,4 +24,4 @@ mutation TokenVerify($token: String!) {
   }
 }
 
-"""
+"""  # noqa: S105

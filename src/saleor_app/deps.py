@@ -1,7 +1,6 @@
 import hashlib
 import hmac
 import logging
-from typing import List, Optional
 
 import jwt
 from fastapi import Depends, Header, HTTPException, Query, Request
@@ -11,34 +10,38 @@ from saleor_app.saleor.mutations import VERIFY_TOKEN
 from saleor_app.saleor.utils import get_client_for_app
 from saleor_app.schemas.core import DomainName
 
+from .schemas.core import SaleorPermissions
+
 logger = logging.getLogger(__name__)
 
 SALEOR_DOMAIN_HEADER = "x-saleor-domain"
-SALEOR_TOKEN_HEADER = "x-saleor-token"
+SALEOR_TOKEN_HEADER = "x-saleor-token"  # noqa: S105
 SALEOR_SIGNATURE_HEADER = "x-saleor-signature"
 
 
 async def saleor_domain_header(
-    saleor_domain: Optional[str] = Header(None, alias=SALEOR_DOMAIN_HEADER),
+    saleor_domain: str | None = Header(None, alias=SALEOR_DOMAIN_HEADER),
 ) -> DomainName:
     if not saleor_domain:
         logger.warning(f"Missing {SALEOR_DOMAIN_HEADER.upper()} header.")
         raise HTTPException(
-            status_code=400, detail=f"Missing {SALEOR_DOMAIN_HEADER.upper()} header."
+            status_code=400,
+            detail=f"Missing {SALEOR_DOMAIN_HEADER.upper()} header.",
         )
     return saleor_domain
 
 
 async def saleor_token(
     request: Request,
-    token: Optional[str] = Header(None, alias=SALEOR_TOKEN_HEADER),
+    token: str | None = Header(None, alias=SALEOR_TOKEN_HEADER),
 ) -> str:
     if request.app.development_auth_token:
         token = token or request.app.development_auth_token
     if not token:
         logger.warning(f"Missing {SALEOR_TOKEN_HEADER.upper()} header.")
         raise HTTPException(
-            status_code=400, detail=f"Missing {SALEOR_TOKEN_HEADER.upper()} header."
+            status_code=400,
+            detail=f"Missing {SALEOR_TOKEN_HEADER.upper()} header.",
         )
     return token
 
@@ -50,7 +53,8 @@ async def verify_saleor_token(
 ) -> bool:
     schema = "http" if request.app.use_insecure_saleor_http else "https"
     async with get_client_for_app(
-        f"{schema}://{saleor_domain}", manifest=request.app.manifest
+        f"{schema}://{saleor_domain}",
+        manifest=request.app.manifest,
     ) as saleor_client:
         try:
             response = await saleor_client.execute(
@@ -69,7 +73,7 @@ async def verify_saleor_token(
     if not is_valid:
         logger.warning(
             f"Provided {SALEOR_DOMAIN_HEADER.upper()} and "
-            f"{SALEOR_TOKEN_HEADER.upper()} are incorrect."
+            f"{SALEOR_TOKEN_HEADER.upper()} are incorrect.",
         )
         raise HTTPException(
             status_code=400,
@@ -89,14 +93,15 @@ async def verify_saleor_domain(
     if not domain_is_valid:
         logger.warning(f"Provided domain {saleor_domain} is invalid.")
         raise HTTPException(
-            status_code=400, detail=f"Provided domain {saleor_domain} is invalid."
+            status_code=400,
+            detail=f"Provided domain {saleor_domain} is invalid.",
         )
     return True
 
 
 async def verify_webhook_signature(
     request: Request,
-    signature: Optional[str] = Header(None, alias=SALEOR_SIGNATURE_HEADER),
+    signature: str | None = Header(None, alias=SALEOR_SIGNATURE_HEADER),
     domain_name=Depends(saleor_domain_header),
 ):
     if not signature:
@@ -110,7 +115,9 @@ async def verify_webhook_signature(
 
     secret_key_bytes = bytes(webhook_details.webhook_secret_key, "utf-8")
     content_signature_str = hmac.new(
-        secret_key_bytes, content, hashlib.sha256
+        secret_key_bytes,
+        content,
+        hashlib.sha256,
     ).hexdigest()
     content_signature = bytes(content_signature_str, "utf-8")
 
@@ -121,9 +128,8 @@ async def verify_webhook_signature(
         )
 
 
-def require_permission(permissions: List):
-    """
-    Validates is the requesting principal is authorized for the specified action
+def require_permission(permissions: list[SaleorPermissions]):
+    """Validates is the requesting principal is authorized for the specified action
 
     Usage:
 
@@ -133,14 +139,16 @@ def require_permission(permissions: List):
     """
 
     async def func(
-        saleor_domain=Depends(saleor_domain_header),
         saleor_token=Depends(saleor_token),
+        _saleor_domain=Depends(saleor_domain_header),
         _token_is_valid=Depends(verify_saleor_token),
     ):
         jwt_payload = jwt.decode(saleor_token, verify=False)
         user_permissions = set(jwt_payload.get("permissions", []))
-        if not set([p.value for p in permissions]) - user_permissions:
+
+        if not {p.value for p in permissions} - user_permissions:
             return True
+
         raise HTTPException(status_code=403, detail="Unauthorized user")
 
     return func

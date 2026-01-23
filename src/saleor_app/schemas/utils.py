@@ -18,19 +18,23 @@ class LazyUrl(str):
     request is available.
     """
 
+    __slots__ = ("name", "request")
+
     def __init__(self, name: str):
         self.name = name
 
     @classmethod
     def __get_pydantic_core_schema__(
-        cls, source_type: Any, handler: GetCoreSchemaHandler
+        cls,
+        source_type: Any,
+        handler: GetCoreSchemaHandler,
     ) -> CoreSchema:
         """Get Pydantic core schema for the lazy URL."""
         python_schema = core_schema.union_schema(
             [
                 core_schema.is_instance_schema(cls),
                 core_schema.str_schema(),
-            ]
+            ],
         )
 
         return core_schema.no_info_after_validator_function(cls.validate, python_schema)
@@ -53,21 +57,21 @@ class LazyUrl(str):
 
         try:
             return str(self.resolve())
-        except NoMatchFound:
+        except NoMatchFound as e:
             message = f"Failed to resolve a lazy url, check if an endpoint named '{self.name}' is defined."
-            raise ConfigurationError(message)
+            raise ConfigurationError(message) from e
 
     def __hash__(self) -> int:
         """Get the hash of the lazy URL."""
         return hash(self.name)
 
-    def __eq__(self, other: "LazyUrl") -> bool:
+    def __eq__(self, other: object) -> bool:
         """Check equality of lazy URLs."""
-        return self.name == other.name
+        return isinstance(other, LazyUrl) and self.name == other.name
 
-    def __ne__(self, other: "LazyUrl") -> bool:
+    def __ne__(self, other: object) -> bool:
         """Check inequality of lazy URLs."""
-        return not (self.name == other.name)
+        return not isinstance(other, LazyUrl) or not (self.name == other.name)
 
     def __str__(self) -> str:
         """String representation of the lazy URL."""

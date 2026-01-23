@@ -1,4 +1,4 @@
-from typing import Callable, List, Optional
+from collections.abc import Callable
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from fastapi.routing import APIRoute
@@ -30,13 +30,18 @@ class WebhookRoute(APIRoute):
                 return response
 
             raise HTTPException(
-                status_code=400, detail=f"Missing {SALEOR_EVENT_HEADER.upper()} header."
+                status_code=400,
+                detail=f"Missing {SALEOR_EVENT_HEADER.upper()} header.",
             )
 
         return custom_route_handler
 
 
 class WebhookRouter(APIRouter):
+    http_routes: dict[SaleorEventType, APIRoute]
+    http_routes_subscriptions: dict[SaleorEventType, str]
+    sqs_routes: dict[SaleorEventType, SQSHandler]
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.http_routes = {}
@@ -45,22 +50,24 @@ class WebhookRouter(APIRouter):
         self.post("", name="handle-webhook")(self.__handle_webhook_stub)
 
     async def __handle_webhook_stub(
-        request: Request,
-        payload: List[Webhook],  # FIXME provide a way to proper define payload types
-        saleor_domain=Depends(saleor_domain_header),
+        self,
+        _request: Request,
+        _payload: list[Webhook],  # NOTE: provide a way to proper define payload types
+        _saleor_domain=Depends(saleor_domain_header),
         _verify_saleor_domain=Depends(verify_saleor_domain),
         _verify_webhook_signature=Depends(verify_webhook_signature),
         _event_type=Header(None, alias=SALEOR_EVENT_HEADER),
     ):
-        """
-        This definition will never be used, it's here for the sake of the
-        OpenAPI spec being complete.
+        """This definition will never be used, it's here for the sake of the OpenAPI spec being complete.
+
         Endpoints registered by `http_event_route` are invoked in place of this.
         """
         return {}
 
     def http_event_route(
-        self, event_type: SaleorEventType, subscription_query: Optional[str] = None
+        self,
+        event_type: SaleorEventType,
+        subscription_query: str | None = None,
     ):
         def decorator(func: WebHookHandlerSignature):
             self.http_routes[event_type] = APIRoute(
@@ -80,7 +87,8 @@ class WebhookRouter(APIRouter):
     def sqs_event_route(self, target_url: SQSUrl, event_type: SaleorEventType):
         def decorator(func):
             self.sqs_routes[event_type] = SQSHandler(
-                target_url=str(target_url), handler=func
+                target_url=str(target_url),
+                handler=func,
             )
 
         return decorator

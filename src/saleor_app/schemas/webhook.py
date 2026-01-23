@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional, Union
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 from pydantic.fields import Field
@@ -36,8 +36,8 @@ class WebhookMeta(BaseModel):
 
     issuing_principal: Principal
     issued_at: datetime
-    cipher_spec: Optional[str]
-    format: Optional[str]
+    cipher_spec: str | None
+    format: str | None
 
 
 class WebhookV2(BaseModel):
@@ -63,4 +63,4 @@ class WebhookV3(BaseModel):
     )
 
 
-Webhook = Union[WebhookV3, WebhookV2, WebhookV1]
+Webhook = WebhookV3 | WebhookV2 | WebhookV1

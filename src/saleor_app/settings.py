@@ -1,7 +1,5 @@
 """Settings for the Saleor App Framework."""
 
-from typing import Optional
-
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -16,7 +14,7 @@ class AWSSettings(BaseSettings):
     access_key_id: str
     secret_access_key: str
     region: str
-    endpoint_url: Optional[str] = None
+    endpoint_url: str | None = None
 
     model_config: SettingsConfigDict = SettingsConfigDict(
         env_prefix="AWS_",

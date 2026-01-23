@@ -87,7 +87,7 @@ lint.ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"src/tests/*" = ["ARG001", "PLR2004", "S106"]
+"src/saleor_app/tests/*" = ["ARG001", "PLR2004", "S106"]
 
 [tool.ruff.lint.mccabe]
 max-complexity = 20
@@ -97,7 +97,7 @@ python_version = "3.12"
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
-testpaths = ["src/tests"]
+testpaths = ["src/saleor_app/tests"]
 addopts = "-s -v --durations=0 --disable-warnings --tb short"
 cache_dir = ".cache/pytest_cache"
 asyncio_mode = "auto"
@@ -106,7 +106,7 @@ asyncio_mode = "auto"
 branch = true
 source = ["src"]
 command_line = "-m pytest"
-omit = ['src/tests/']
+omit = ['src/saleor_app/tests/']
 
 [tool.coverage.report]
 show_missing = true

@@ -1,7 +1,8 @@
 """Handlers for the Saleor App Framework."""
 
+from collections.abc import Awaitable, Callable
 from enum import Enum
-from typing import Annotated, Awaitable, Callable, List, Optional
+from typing import Annotated
 
 from pydantic import AnyUrl, BaseModel, UrlConstraints
 
@@ -121,7 +122,7 @@ class SaleorEventType(str, Enum):
     CHECKOUT_FILTER_SHIPPING_METHODS = "CHECKOUT_FILTER_SHIPPING_METHODS"
 
 
-WebHookHandlerSignature = Optional[Callable[[List[Webhook], DomainName], Awaitable]]
+WebHookHandlerSignature = Callable[[list[Webhook], DomainName], Awaitable] | None
 
 
 SQSUrl = Annotated[AnyUrl, UrlConstraints(allowed_schemes=["awssqs"])]

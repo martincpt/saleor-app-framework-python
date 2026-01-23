@@ -20,7 +20,10 @@ async def test_manifest(client: TestClient, saleor_app: SaleorApp) -> None:
 
 
 async def test_install(
-    client: TestClient, saleor_app_with_webhooks, get_webhook_details, monkeypatch
+    client: TestClient,
+    saleor_app_with_webhooks,
+    get_webhook_details,
+    monkeypatch,
 ) -> None:
     install_app_mock = AsyncMock()
     monkeypatch.setattr("saleor_app.endpoints.install_app", install_app_mock)

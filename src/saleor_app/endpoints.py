@@ -1,5 +1,6 @@
 import logging
 from collections import defaultdict
+from typing import TYPE_CHECKING
 
 from fastapi import Depends, Request
 from fastapi.exceptions import HTTPException
@@ -10,6 +11,9 @@ from saleor_app.install import install_app
 from saleor_app.saleor.exceptions import GraphQLError
 from saleor_app.schemas.core import InstallData
 from saleor_app.schemas.utils import LazyUrl
+
+if TYPE_CHECKING:
+    from saleor_app.schemas.handlers import SaleorEventType
 
 logger = logging.getLogger(__name__)
 
@@ -31,16 +35,23 @@ async def install(
     _domain_is_valid=Depends(verify_saleor_domain),
     saleor_domain=Depends(saleor_domain_header),
 ):
-    events = defaultdict(list)
+    # It's probably not the best design
+    # if we have to import SaleorApp here
+    from saleor_app.app import SaleorApp
+
+    assert isinstance(request.app, SaleorApp)
+
+    events: dict[str, list[tuple[SaleorEventType, str | None]]] = defaultdict(list)
+
     if hasattr(request.app, "webhook_router"):
         for event_type in request.app.webhook_router.http_routes:
             events[str(request.url_for("handle-webhook"))].append(
                 (
                     event_type,
                     request.app.webhook_router.http_routes_subscriptions.get(
-                        event_type
+                        event_type,
                     ),
-                )
+                ),
             )
         for event_type, sqs_handler in request.app.webhook_router.sqs_routes.items():
             key = str(sqs_handler.target_url)
@@ -56,17 +67,18 @@ async def install(
                 use_insecure_saleor_http=request.app.use_insecure_saleor_http,
             )
         except (InstallAppError, GraphQLError) as exc:
-            logger.debug(str(exc), exc_info=1)
+            logger.debug(str(exc), exc_info=True)
             raise HTTPException(
-                status_code=403, detail="Incorrect token or not enough permissions"
-            )
+                status_code=403,
+                detail="Incorrect token or not enough permissions",
+            ) from exc
     else:
         webhook_data = None
 
     await request.app.save_app_data(
-        saleor_domain=saleor_domain,
-        auth_token=data.auth_token,
-        webhook_data=webhook_data,
+        saleor_domain,
+        data.auth_token,
+        webhook_data,
     )
 
     return {}

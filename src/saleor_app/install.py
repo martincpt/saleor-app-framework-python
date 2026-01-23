@@ -1,7 +1,6 @@
 import logging
 import secrets
 import string
-from typing import Dict, Tuple
 
 from saleor_app.errors import InstallAppError
 from saleor_app.saleor.exceptions import GraphQLError
@@ -18,10 +17,9 @@ async def install_app(
     saleor_domain: DomainName,
     auth_token: AppToken,
     manifest: Manifest,
-    events: Dict[str, Tuple[SaleorEventType, str]],
+    events: dict[str, list[tuple[SaleorEventType, str | None]]],
     use_insecure_saleor_http: bool,
 ):
-    print("install_app Saleor app...")
     alphabet = string.ascii_letters + string.digits
     secret_key = "".join(secrets.choice(alphabet) for _ in range(20))
 
@@ -30,7 +28,9 @@ async def install_app(
     errors = []
 
     async with get_client_for_app(
-        f"{schema}://{saleor_domain}", manifest=manifest, auth_token=auth_token
+        f"{schema}://{saleor_domain}",
+        manifest=manifest,
+        auth_token=auth_token,
     ) as saleor_client:
         for target_url, target_events in events.items():
             for event_type, subscription_query in target_events:
@@ -59,7 +59,8 @@ async def install_app(
             saleor_domain,
             list(map(str, errors)),
         )
-        raise InstallAppError("Failed to create webhooks for %s.", saleor_domain)
+        message = f"Failed to create webhooks for {saleor_domain}."
+        raise InstallAppError(message)
 
     saleor_webhook_id = response["webhookCreate"]["webhook"]["id"]
     return WebhookData(webhook_id=saleor_webhook_id, webhook_secret_key=secret_key)
