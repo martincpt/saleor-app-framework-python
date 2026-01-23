@@ -170,6 +170,16 @@ async def product_deleted(
 
 ```
 
+### For developers
+
+#### Install environment
+
+    uv sync --all-extras --all-groups
+
+#### Install pre-commit hooks
+
+    uv run pre-commit install
+
 ### Fork notes end
 
 The rest of the read me from this point is the original one.
