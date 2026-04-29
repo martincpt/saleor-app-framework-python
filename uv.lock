@@ -434,6 +434,15 @@ wheels = [
 ]
 
 [[package]]
+name = "cyclic"
+version = "1.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/bf/9f/becc4fea44301f232e4eba17752001bd708e3c042fef37a72b9af7ddf4b5/cyclic-1.0.0.tar.gz", hash = "sha256:ecddd56cb831ee3e6b79f61ecb0ad71caee606c507136867782911aa01c3e5eb", size = 2167, upload-time = "2018-09-26T16:47:07.285Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c0/c0/9f59d2ebd9d585e1681c51767eb138bcd9d0ea770f6fc003cd875c7f5e62/cyclic-1.0.0-py3-none-any.whl", hash = "sha256:32d8181d7698f426bce6f14f4c3921ef95b6a84af9f96192b59beb05bc00c3ed", size = 2547, upload-time = "2018-09-26T16:47:05.609Z" },
+]
+
+[[package]]
 name = "distlib"
 version = "0.4.0"
 source = { registry = "https://pypi.org/simple" }
@@ -734,6 +743,20 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/fb/df/5bd7a48c256faecd1d36edc13133e51397e41b73bb77e1a69deab746ebac/markupsafe-3.0.3-cp314-cp314t-win32.whl", hash = "sha256:915c04ba3851909ce68ccc2b8e2cd691618c4dc4c4232fb7982bca3f41fd8c3d", size = 14819, upload-time = "2025-09-27T18:37:26.285Z" },
     { url = "https://files.pythonhosted.org/packages/1a/8a/0402ba61a2f16038b48b39bccca271134be00c5c9f0f623208399333c448/markupsafe-3.0.3-cp314-cp314t-win_amd64.whl", hash = "sha256:4faffd047e07c38848ce017e8725090413cd80cbc23d86e55c587bf979e579c9", size = 15426, upload-time = "2025-09-27T18:37:27.316Z" },
     { url = "https://files.pythonhosted.org/packages/70/bc/6f1c2f612465f5fa89b95bead1f44dcb607670fd42891d8fdcd5d039f4f4/markupsafe-3.0.3-cp314-cp314t-win_arm64.whl", hash = "sha256:32001d6a8fc98c8cb5c947787c5d08b0a50663d139f1305bac5885d98d9b40fa", size = 14146, upload-time = "2025-09-27T18:37:28.327Z" },
+]
+
+[[package]]
+name = "mdx-include"
+version = "1.4.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "cyclic" },
+    { name = "markdown" },
+    { name = "rcslice" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/bf/f0/f395a9cf164471d3c7bbe58cbd64d74289575a8b85a962b49a804ab7ed34/mdx_include-1.4.2.tar.gz", hash = "sha256:992f9fbc492b5cf43f7d8cb4b90b52a4e4c5fdd7fd04570290a83eea5c84f297", size = 15051, upload-time = "2022-07-26T05:46:14.129Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c0/40/6844997dee251103c5a4c4eb0d1d2f2162b7c29ffc4e86de3cd68d269be2/mdx_include-1.4.2-py3-none-any.whl", hash = "sha256:cfbeadd59985f27a9b70cb7ab0a3d209892fe1bb1aa342df055e0b135b3c9f34", size = 11591, upload-time = "2022-07-26T05:46:11.518Z" },
 ]
 
 [[package]]
@@ -1319,6 +1342,15 @@ wheels = [
 ]
 
 [[package]]
+name = "rcslice"
+version = "1.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/53/3e/abe47d91d5340b77b003baf96fdf8966c946eb4c5a704a844b5d03e6e578/rcslice-1.1.0.tar.gz", hash = "sha256:a2ce70a60690eb63e52b722e046b334c3aaec5e900b28578f529878782ee5c6e", size = 4414, upload-time = "2018-09-27T12:44:06.601Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/aa/96/7935186fba032312eb8a75e6503440b0e6de76c901421f791408e4debd93/rcslice-1.1.0-py3-none-any.whl", hash = "sha256:1b12fc0c0ca452e8a9fd2b56ac008162f19e250906a4290a7e7a98be3200c2a6", size = 5180, upload-time = "2018-09-27T12:44:05.197Z" },
+]
+
+[[package]]
 name = "requests"
 version = "2.33.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1368,6 +1400,7 @@ sqs = [
 [package.dev-dependencies]
 dev = [
     { name = "httpx" },
+    { name = "mdx-include" },
     { name = "mkdocs-material" },
     { name = "pre-commit" },
     { name = "pytest" },
@@ -1392,6 +1425,7 @@ provides-extras = ["sqs"]
 [package.metadata.requires-dev]
 dev = [
     { name = "httpx", specifier = ">=0.28.1" },
+    { name = "mdx-include", specifier = ">=1.4.2" },
     { name = "mkdocs-material", specifier = ">=9.7.6" },
     { name = "pre-commit", specifier = ">=4.5.1" },
     { name = "pytest", specifier = ">=9.0.2" },
