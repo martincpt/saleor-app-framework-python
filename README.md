@@ -46,13 +46,15 @@ The original repository is pretty much stale and unmaintained. This fork aims to
 
 ### Minimum working example
 
-Here is a minimum working example I was able to install my app and receive webhooks:
+Here is a minimum working example I was able to install my app and receive webhooks.
+
+Manifest URL for local Docker access:
+
+    http://host.docker.internal:5001/configuration/manifest
 
 ```python
-import json
-
 from fastapi.param_functions import Depends
-from fastapi.responses import HTMLResponse, PlainTextResponse
+from fastapi.responses import PlainTextResponse
 
 from saleor_app.app import SaleorApp
 from saleor_app.deps import saleor_domain_header
@@ -83,17 +85,15 @@ async def store_app_data(
 
 
 manifest = Manifest(
+    id="saleor-simple-sample",
     name="Sample Saleor App",
     version="0.1.0",
     about="Sample Saleor App seving as an example.",
-    app_url="get_data_placeholder",
-    data_privacy="Data privacy for manifest",
-    data_privacy_url="get_data_placeholder",
-    homepage_url="get_data_placeholder",
-    support_url="get_data_placeholder",
-    id="saleor-simple-sample",
+    app_url=LazyUrl("get_data_placeholder"),
+    data_privacy_url=LazyUrl("get_data_placeholder"),
+    homepage_url=LazyUrl("get_data_placeholder"),
+    support_url=LazyUrl("get_data_placeholder"),
     permissions=["MANAGE_PRODUCTS", "MANAGE_USERS"],
-    configuration_url=LazyUrl("configuration-form"),
     extensions=[],
 )
 
@@ -109,34 +109,25 @@ app = SaleorApp(
         {
             "url": "http://host.docker.internal:5001",
             "description": "Local Docker access",
-        }
+            "public_url": "http://0.0.0.0:5001",
+        },
+        {
+            "url": "http://0.0.0.0:5001",
+            "description": "Local development server",
+        },
     ],
 )
 
 
-@app.route("/data-placeholder")
-async def get_data_placeholder() -> str:
+@app.router.get("/data-placeholder", response_class=PlainTextResponse)
+async def get_data_placeholder(commons: ConfigurationFormDeps = Depends()) -> str:
     return "This is a placeholder page for data privacy, homepage, and support page."
-
-
-@app.configuration_router.get(
-    "/",
-    response_class=HTMLResponse,
-    name="configuration-form",
-)
-async def get_public_form(commons: ConfigurationFormDeps = Depends()):
-    context = {
-        "request": str(commons.request),
-        "form_url": str(commons.request.url),
-        "saleor_domain": commons.saleor_domain,
-    }
-    return PlainTextResponse(json.dumps(context, indent=4))
 
 
 app.include_saleor_app_routes()
 
 
-# ---- WEBHOOK -----
+# ---- WEBHOOK ----
 async def get_webhook_details(saleor_domain: DomainName) -> WebhookData:
     return stored_webhook
 

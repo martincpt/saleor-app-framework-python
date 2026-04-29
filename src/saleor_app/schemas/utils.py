@@ -18,10 +18,17 @@ class LazyUrl(str):
     request is available.
     """
 
-    __slots__ = ("name", "request")
+    public: bool
+    name: str
 
-    def __init__(self, name: str):
-        self.name = name
+    __slots__ = ("name", "public")
+
+    def __new__(cls, name: str, public: bool = True):
+        """Create a new LazyUrl instance."""
+        instance = super().__new__(cls, name)
+        instance.name = name
+        instance.public = public
+        return instance
 
     @classmethod
     def __get_pydantic_core_schema__(
@@ -47,35 +54,61 @@ class LazyUrl(str):
 
         return cls(v)
 
-    def resolve(self) -> URL:
+    def resolve(self, request: Request) -> URL:
         """Resolve the lazy URL to a fully qualified URL."""
-        return self.request.url_for(self.name)
+        path = request.url_for(self.name)
+
+        if not self.public:  # or path.hostname != "host.docker.internal":
+            # Use internal/request host (for webhooks, API calls from Saleor)
+            return path
+
+        assert isinstance(request.app, FastAPI)
+
+        url = str(request.base_url)[:-1]
+        server: dict[str, Any] = next(
+            (
+                config
+                for config in request.app.servers
+                if "url" in config and config["url"] == url
+            ),
+            {},
+        )
+
+        if "public_url" not in server:
+            return path
+
+        base = URL(server["public_url"])
+        return base.replace(path=path.path, query=path.query)
 
     def __call__(self, request: Request) -> str:
         """Call the lazy URL with the request context."""
-        self.request = request
-
         try:
-            return str(self.resolve())
+            return str(self.resolve(request))
         except NoMatchFound as e:
             message = f"Failed to resolve a lazy url, check if an endpoint named '{self.name}' is defined."
             raise ConfigurationError(message) from e
 
     def __hash__(self) -> int:
         """Get the hash of the lazy URL."""
-        return hash(self.name)
+        return hash((self.name, self.public))
 
     def __eq__(self, other: object) -> bool:
         """Check equality of lazy URLs."""
-        return isinstance(other, LazyUrl) and self.name == other.name
+        return (
+            isinstance(other, LazyUrl)
+            and self.name == other.name
+            and self.public == other.public
+        )
 
     def __ne__(self, other: object) -> bool:
         """Check inequality of lazy URLs."""
-        return not isinstance(other, LazyUrl) or not (self.name == other.name)
+        return not isinstance(other, LazyUrl) or not (
+            self.name == other.name and self.public == other.public
+        )
 
     def __str__(self) -> str:
         """String representation of the lazy URL."""
-        return f"LazyURL('{self.name}')"
+        return f"LazyURL('{self.name}', public={self.public})"
 
     def __repr__(self) -> str:
         """Representation of the lazy URL."""
@@ -90,10 +123,10 @@ class LazyPath(LazyUrl):
     maintain the same usage as the LazyUrl class.
     """
 
-    def resolve(self) -> URLPath:
+    def resolve(self, request: Request) -> URLPath:
         """Resolve the lazy path to a fully qualified path."""
-        assert isinstance(self.request.app, FastAPI)
-        return self.request.app.url_path_for(self.name)
+        assert isinstance(request.app, FastAPI)
+        return request.app.url_path_for(self.name)
 
     def __str__(self) -> str:
         """String representation of the lazy path."""

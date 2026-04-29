@@ -63,7 +63,6 @@ class Manifest(BaseModel):
     version: str
     about: str
     extensions: list[Extension]
-    data_privacy: str = Field(..., alias="dataPrivacy")
     data_privacy_url: AnyHttpUrl | LazyUrl = Field(
         alias="dataPrivacyUrl",
         union_mode="left_to_right",
@@ -76,17 +75,12 @@ class Manifest(BaseModel):
         alias="supportUrl",
         union_mode="left_to_right",
     )
-    configuration_url: AnyHttpUrl | LazyUrl | None = Field(
-        default=None,
-        alias="configurationUrl",
-        union_mode="left_to_right",
-    )
     app_url: AnyHttpUrl | LazyUrl = Field(
         alias="appUrl",
         union_mode="left_to_right",
     )
     token_target_url: AnyHttpUrl | LazyUrl = Field(
-        default=LazyUrl("app-install"),
+        default=LazyUrl("app-install", public=False),
         alias="tokenTargetUrl",
         union_mode="left_to_right",
     )
