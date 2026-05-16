@@ -9,6 +9,10 @@ from pydantic import AnyUrl, BaseModel, UrlConstraints
 from saleor_app.schemas.core import DomainName
 from saleor_app.schemas.webhook import Webhook
 
+WebhookSubscription = tuple["SaleorEventType", str | None]
+WebhookSubscriptionMap = dict[str, list[WebhookSubscription]]
+WebHookHandlerSignature = Callable[[list[Webhook], DomainName], Awaitable] | None
+
 
 class SaleorEventType(str, Enum):
     """Event types for the Saleor App Framework."""
@@ -120,9 +124,6 @@ class SaleorEventType(str, Enum):
     SHIPPING_LIST_METHODS_FOR_CHECKOUT = "SHIPPING_LIST_METHODS_FOR_CHECKOUT"
     ORDER_FILTER_SHIPPING_METHODS = "ORDER_FILTER_SHIPPING_METHODS"
     CHECKOUT_FILTER_SHIPPING_METHODS = "CHECKOUT_FILTER_SHIPPING_METHODS"
-
-
-WebHookHandlerSignature = Callable[[list[Webhook], DomainName], Awaitable] | None
 
 
 SQSUrl = Annotated[AnyUrl, UrlConstraints(allowed_schemes=["awssqs"])]

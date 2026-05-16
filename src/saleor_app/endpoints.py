@@ -15,7 +15,7 @@ from .schemas.utils import LazyUrl
 
 if TYPE_CHECKING:
     from .app import SaleorApp
-    from .schemas.handlers import SaleorEventType
+    from .schemas.handlers import WebhookSubscriptionMap
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +43,7 @@ async def install(
     _domain_is_valid=Depends(verify_saleor_domain),
     saleor_domain=Depends(saleor_domain_header),
 ) -> None:
-    events: dict[str, list[tuple[SaleorEventType, str | None]]] = defaultdict(list)
+    events: WebhookSubscriptionMap = defaultdict(list)
 
     if hasattr(saleor_app, "webhook_router"):
         for event_type in saleor_app.webhook_router.http_routes:
@@ -59,23 +59,23 @@ async def install(
             key = str(sqs_handler.target_url)
             events[key].append((event_type, None))
 
-    if events:
-        try:
-            webhook_data = await install_app(
-                saleor_domain=saleor_domain,
-                auth_token=data.auth_token,
-                manifest=saleor_app.manifest,
-                events=events,
-                use_insecure_saleor_http=saleor_app.use_insecure_saleor_http,
-            )
-        except (InstallAppError, GraphQLError) as exc:
-            logger.debug(str(exc), exc_info=True)
-            raise HTTPException(
-                status_code=403,
-                detail="Incorrect token or not enough permissions",
-            ) from exc
-    else:
-        webhook_data = None
+    if not events:
+        return
+
+    try:
+        webhook_data = await install_app(
+            saleor_domain=saleor_domain,
+            auth_token=data.auth_token,
+            manifest=saleor_app.manifest,
+            events=events,
+            use_insecure_saleor_http=saleor_app.use_insecure_saleor_http,
+        )
+    except (InstallAppError, GraphQLError) as exc:
+        logger.debug(str(exc), exc_info=True)
+        raise HTTPException(
+            status_code=403,
+            detail="Incorrect token or not enough permissions",
+        ) from exc
 
     await saleor_app.save_app_data(
         saleor_domain,

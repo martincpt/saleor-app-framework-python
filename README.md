@@ -97,13 +97,18 @@ async def validate_domain(saleor_domain: DomainName) -> bool:
     return True
 
 
-async def store_app_data(
+async def save_app_data(
     saleor_domain: DomainName,
     auth_token: str,
     webhook_data: WebhookData,
 ) -> None:
-    print("Called store_app_data", saleor_domain, auth_token, webhook_data)
+    print("Called save_app_data", saleor_domain, auth_token, webhook_data)
     WEBHOOK_DATA_FILE.write_text(webhook_data.model_dump_json())
+
+
+async def get_webhook_details(saleor_domain: DomainName) -> WebhookData:
+    print("Called get_webhook_details", saleor_domain)
+    return WebhookData.model_validate_json(WEBHOOK_DATA_FILE.read_text())
 
 
 manifest = Manifest(
@@ -123,7 +128,8 @@ manifest = Manifest(
 app = SaleorApp(
     manifest=manifest,
     validate_domain=validate_domain,
-    save_app_data=store_app_data,
+    save_app_data=save_app_data,
+    get_webhook_details=get_webhook_details,
     # more arguments to come
     use_insecure_saleor_http=True,
     development_auth_token="dev_token",
@@ -146,17 +152,7 @@ async def get_data_placeholder(commons: ConfigurationFormDeps = Depends()) -> st
     return "This is a placeholder page for data privacy, homepage, and support page."
 
 
-app.include_saleor_app_routes()
-
-
-# ---- WEBHOOK ----
-async def get_webhook_details(saleor_domain: DomainName) -> WebhookData:
-    return WebhookData.model_validate_json(WEBHOOK_DATA_FILE.read_text())
-
-
-app.include_webhook_router(get_webhook_details=get_webhook_details)
-
-
+# ---- Webhooks ----
 @app.webhook_router.http_event_route(SaleorEventType.PRODUCT_CREATED)
 async def product_created(
     payload: list[Webhook],
@@ -179,7 +175,6 @@ async def product_deleted(
     saleor_domain=Depends(saleor_domain_header),
 ) -> None:
     print("Product deleted", payload, saleor_domain)
-
 
 ```
 

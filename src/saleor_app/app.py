@@ -31,8 +31,10 @@ class SaleorApp(FastAPI):
         manifest: Manifest,
         validate_domain: ValidateDomain,
         save_app_data: SaveAppData,
+        get_webhook_details: GetWebhookDetails | None = None,
         use_insecure_saleor_http: bool = False,
         development_auth_token: str | None = None,
+        include_saleor_app_routes: bool = True,
         **kwargs,
     ) -> None:
         """Initialize SaleorApp instance."""
@@ -50,6 +52,12 @@ class SaleorApp(FastAPI):
             prefix="/configuration",
             tags=["configuration"],
         )
+
+        if include_saleor_app_routes:
+            self.include_saleor_app_routes()
+
+        if get_webhook_details:
+            self.include_webhook_router(get_webhook_details)
 
     def include_saleor_app_routes(self) -> None:
         """Include Saleor app routes."""

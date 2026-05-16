@@ -2,13 +2,13 @@ import logging
 import secrets
 import string
 
-from saleor_app.errors import InstallAppError
-from saleor_app.saleor.exceptions import GraphQLError
-from saleor_app.saleor.mutations import CREATE_WEBHOOK
-from saleor_app.saleor.utils import get_client_for_app
-from saleor_app.schemas.core import AppToken, DomainName, WebhookData
-from saleor_app.schemas.handlers import SaleorEventType
-from saleor_app.schemas.manifest import Manifest
+from .errors import InstallAppError
+from .saleor.exceptions import GraphQLError
+from .saleor.mutations import CREATE_WEBHOOK
+from .saleor.utils import get_client_for_app
+from .schemas.core import AppToken, DomainName, WebhookData
+from .schemas.handlers import WebhookSubscriptionMap
+from .schemas.manifest import Manifest
 
 logger = logging.getLogger(__name__)
 
@@ -17,9 +17,9 @@ async def install_app(
     saleor_domain: DomainName,
     auth_token: AppToken,
     manifest: Manifest,
-    events: dict[str, list[tuple[SaleorEventType, str | None]]],
+    events: WebhookSubscriptionMap,
     use_insecure_saleor_http: bool,
-):
+) -> WebhookData:
     alphabet = string.ascii_letters + string.digits
     secret_key = "".join(secrets.choice(alphabet) for _ in range(20))
 

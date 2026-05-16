@@ -1,4 +1,4 @@
-from collections.abc import Callable, Iterable
+from collections.abc import Iterable
 from unittest.mock import AsyncMock, Mock, create_autospec
 
 import pytest
@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 from saleor_app.app import SaleorApp
 from saleor_app.schemas.core import GetWebhookDetails
-from saleor_app.schemas.handlers import SaleorEventType, SQSUrl
+from saleor_app.schemas.handlers import SaleorEventType, SQSUrl, WebHookHandlerSignature
 from saleor_app.schemas.manifest import Extension, Manifest
 from saleor_app.schemas.utils import LazyPath, LazyUrl
 from saleor_app.settings import AWSSettings
@@ -58,7 +58,7 @@ async def _webhook_handler() -> None:
 
 
 @pytest.fixture()
-def webhook_handler() -> Callable[..., None]:
+def webhook_handler() -> WebHookHandlerSignature:
     return create_autospec(_webhook_handler)
 
 
@@ -75,7 +75,6 @@ def saleor_app(manifest: Manifest) -> SaleorApp:
     saleor_app.get("/configuration", name="configuration-form")(lambda x: x)
     saleor_app.get("/extension", name="extension")(lambda x: x)
     saleor_app.get("/test_webhook_handler", name="test-webhook-handler")(lambda x: x)
-    saleor_app.include_saleor_app_routes()
     return saleor_app
 
 
@@ -90,7 +89,7 @@ def client(saleor_app: SaleorApp) -> Iterable[TestClient]:
 def saleor_app_with_webhooks(
     saleor_app: SaleorApp,
     get_webhook_details: GetWebhookDetails,
-    webhook_handler: Callable[..., None],
+    webhook_handler: WebHookHandlerSignature,
 ) -> SaleorApp:
     saleor_app.include_webhook_router(get_webhook_details)
     saleor_app.webhook_router.http_event_route(SaleorEventType.PRODUCT_CREATED)(
