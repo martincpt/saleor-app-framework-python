@@ -5,63 +5,57 @@ from typing import TYPE_CHECKING
 from fastapi import Depends, Request
 from fastapi.exceptions import HTTPException
 
-from saleor_app.deps import saleor_domain_header, verify_saleor_domain
-from saleor_app.errors import InstallAppError
-from saleor_app.install import install_app
-from saleor_app.saleor.exceptions import GraphQLError
-from saleor_app.schemas.core import InstallData
-from saleor_app.schemas.utils import LazyUrl
+from .deps import saleor_app, saleor_domain_header, verify_saleor_domain
+from .errors import InstallAppError
+from .install import install_app
+from .saleor.exceptions import GraphQLError
+from .schemas.core import InstallData
+from .schemas.manifest import Manifest
+from .schemas.utils import LazyUrl
 
 if TYPE_CHECKING:
-    from saleor_app.schemas.handlers import SaleorEventType
+    from .app import SaleorApp
+    from .schemas.handlers import SaleorEventType
 
 logger = logging.getLogger(__name__)
 
 
-async def manifest(request: Request):
-    # It's probably not the best design if we have to import SaleorApp here.
-    # We either need to redesign the module architecture or
-    # create a properly annotated dependency here.
-    from saleor_app.app import SaleorApp
-
-    assert isinstance(request.app, SaleorApp)
-
-    manifest = request.app.manifest
-    for name, field in manifest:
+async def manifest(
+    request: Request,
+    saleor_app: "SaleorApp" = Depends(saleor_app),
+) -> Manifest:
+    """Manifest endpoint."""
+    for name, field in saleor_app.manifest:
         if isinstance(field, LazyUrl):
-            setattr(manifest, name, field(request))
-    for extension in manifest.extensions:
+            setattr(saleor_app.manifest, name, field(request))
+
+    for extension in saleor_app.manifest.extensions:
         if isinstance(extension.url, LazyUrl):
             extension.url = extension.url(request)
-    return manifest
+
+    return saleor_app.manifest
 
 
 async def install(
     request: Request,
     data: InstallData,
+    saleor_app: "SaleorApp" = Depends(saleor_app),
     _domain_is_valid=Depends(verify_saleor_domain),
     saleor_domain=Depends(saleor_domain_header),
-):
-    # It's probably not the best design if we have to import SaleorApp here.
-    # We either need to redesign the module architecture or
-    # create a properly annotated dependency here.
-    from saleor_app.app import SaleorApp
-
-    assert isinstance(request.app, SaleorApp)
-
+) -> None:
     events: dict[str, list[tuple[SaleorEventType, str | None]]] = defaultdict(list)
 
-    if hasattr(request.app, "webhook_router"):
-        for event_type in request.app.webhook_router.http_routes:
-            events[str(request.url_for("handle-webhook"))].append(
-                (
+    if hasattr(saleor_app, "webhook_router"):
+        for event_type in saleor_app.webhook_router.http_routes:
+            subscription_query = (
+                saleor_app.webhook_router.http_routes_subscriptions.get(
                     event_type,
-                    request.app.webhook_router.http_routes_subscriptions.get(
-                        event_type,
-                    ),
-                ),
+                )
             )
-        for event_type, sqs_handler in request.app.webhook_router.sqs_routes.items():
+            key = str(request.url_for("handle-webhook"))
+            events[key].append((event_type, subscription_query))
+
+        for event_type, sqs_handler in saleor_app.webhook_router.sqs_routes.items():
             key = str(sqs_handler.target_url)
             events[key].append((event_type, None))
 
@@ -70,9 +64,9 @@ async def install(
             webhook_data = await install_app(
                 saleor_domain=saleor_domain,
                 auth_token=data.auth_token,
-                manifest=request.app.manifest,
+                manifest=saleor_app.manifest,
                 events=events,
-                use_insecure_saleor_http=request.app.use_insecure_saleor_http,
+                use_insecure_saleor_http=saleor_app.use_insecure_saleor_http,
             )
         except (InstallAppError, GraphQLError) as exc:
             logger.debug(str(exc), exc_info=True)
@@ -83,10 +77,8 @@ async def install(
     else:
         webhook_data = None
 
-    await request.app.save_app_data(
+    await saleor_app.save_app_data(
         saleor_domain,
         data.auth_token,
         webhook_data,
     )
-
-    return {}

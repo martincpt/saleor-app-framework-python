@@ -1,24 +1,41 @@
-from collections.abc import Awaitable, Callable
+"""Saleor App for the Saleor App Framework."""
 
 from fastapi import APIRouter, FastAPI
 
-from saleor_app.endpoints import install, manifest
-from saleor_app.schemas.core import DomainName, WebhookData
-from saleor_app.schemas.manifest import Manifest
-from saleor_app.webhook import WebhookRoute, WebhookRouter
+from .endpoints import install, manifest
+from .schemas.core import (
+    GetWebhookDetails,
+    SaveAppData,
+    ValidateDomain,
+)
+from .schemas.manifest import Manifest
+from .webhook import WebhookRoute, WebhookRouter
 
 
 class SaleorApp(FastAPI):
+    """Saleor App main class."""
+
+    manifest: Manifest
+    validate_domain: ValidateDomain
+    save_app_data: SaveAppData
+    use_insecure_saleor_http: bool
+    development_auth_token: str | None
+    configuration_router: APIRouter
+
+    get_webhook_details: GetWebhookDetails
+    webhook_router: WebhookRouter
+
     def __init__(
         self,
         *,
         manifest: Manifest,
-        validate_domain: Callable[[DomainName], Awaitable[bool]],
-        save_app_data: Callable[[DomainName, str, WebhookData], Awaitable],
+        validate_domain: ValidateDomain,
+        save_app_data: SaveAppData,
         use_insecure_saleor_http: bool = False,
         development_auth_token: str | None = None,
         **kwargs,
-    ):
+    ) -> None:
+        """Initialize SaleorApp instance."""
         super().__init__(**kwargs)
 
         self.manifest = manifest
@@ -34,7 +51,8 @@ class SaleorApp(FastAPI):
             tags=["configuration"],
         )
 
-    def include_saleor_app_routes(self):
+    def include_saleor_app_routes(self) -> None:
+        """Include Saleor app routes."""
         self.configuration_router.get(
             "/manifest",
             response_model=Manifest,
@@ -51,10 +69,8 @@ class SaleorApp(FastAPI):
 
         self.include_router(self.configuration_router)
 
-    def include_webhook_router(
-        self,
-        get_webhook_details: Callable[[DomainName], Awaitable[WebhookData]],
-    ):
+    def include_webhook_router(self, get_webhook_details: GetWebhookDetails) -> None:
+        """Include Saleor webhook routes."""
         self.get_webhook_details = get_webhook_details
         self.webhook_router = WebhookRouter(
             prefix="/webhook",
