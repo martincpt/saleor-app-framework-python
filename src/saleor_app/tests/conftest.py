@@ -1,10 +1,12 @@
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from unittest.mock import AsyncMock, Mock, create_autospec
 
 import pytest
+from fastapi import Request
 from fastapi.testclient import TestClient
 
 from saleor_app.app import SaleorApp
+from saleor_app.schemas.core import GetWebhookDetails
 from saleor_app.schemas.handlers import SaleorEventType, SQSUrl
 from saleor_app.schemas.manifest import Extension, Manifest
 from saleor_app.schemas.utils import LazyPath, LazyUrl
@@ -12,7 +14,7 @@ from saleor_app.settings import AWSSettings
 
 
 @pytest.fixture()
-def aws_settings():
+def aws_settings() -> AWSSettings:
     return AWSSettings(
         account_id="",
         access_key_id="",
@@ -22,7 +24,7 @@ def aws_settings():
 
 
 @pytest.fixture()
-def manifest():
+def manifest() -> Manifest:
     return Manifest(
         name="Sample Saleor App",
         version="0.1.0",
@@ -47,21 +49,21 @@ def manifest():
 
 
 @pytest.fixture()
-def get_webhook_details():
+def get_webhook_details() -> GetWebhookDetails:
     return AsyncMock()
 
 
-async def _webhook_handler():
+async def _webhook_handler() -> None:
     pass
 
 
 @pytest.fixture()
-def webhook_handler():
+def webhook_handler() -> Callable[..., None]:
     return create_autospec(_webhook_handler)
 
 
 @pytest.fixture()
-def saleor_app(manifest):
+def saleor_app(manifest: Manifest) -> SaleorApp:
     saleor_app = SaleorApp(
         manifest=manifest,
         validate_domain=AsyncMock(),
@@ -85,7 +87,11 @@ def client(saleor_app: SaleorApp) -> Iterable[TestClient]:
 
 
 @pytest.fixture()
-def saleor_app_with_webhooks(saleor_app, get_webhook_details, webhook_handler):
+def saleor_app_with_webhooks(
+    saleor_app: SaleorApp,
+    get_webhook_details: GetWebhookDetails,
+    webhook_handler: Callable[..., None],
+) -> SaleorApp:
     saleor_app.include_webhook_router(get_webhook_details)
     saleor_app.webhook_router.http_event_route(SaleorEventType.PRODUCT_CREATED)(
         webhook_handler,
@@ -108,12 +114,12 @@ def saleor_app_with_webhooks(saleor_app, get_webhook_details, webhook_handler):
 
 
 @pytest.fixture()
-def mock_request(saleor_app):
+def mock_request(saleor_app: SaleorApp) -> Request:
     return Mock(app=saleor_app, body=AsyncMock(return_value=b"request_body"))
 
 
 @pytest.fixture()
-def mock_request_with_metadata(saleor_app):
+def mock_request_with_metadata(saleor_app: SaleorApp) -> Request:
     return AsyncMock(
         app=saleor_app,
         json=AsyncMock(

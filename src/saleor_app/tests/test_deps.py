@@ -2,8 +2,10 @@ import hashlib
 from unittest.mock import AsyncMock
 
 import pytest
-from fastapi import HTTPException
+from fastapi import HTTPException, Request
+from pytest_mock import MockerFixture
 
+from saleor_app.app import SaleorApp
 from saleor_app.deps import (
     saleor_domain_header,
     saleor_token,
@@ -13,53 +15,60 @@ from saleor_app.deps import (
 )
 from saleor_app.saleor.client import SaleorClient
 from saleor_app.saleor.exceptions import GraphQLError
-from saleor_app.schemas.core import WebhookData
+from saleor_app.schemas.core import GetWebhookDetails, WebhookData
 
 
-async def test_saleor_domain_header_missing():
+async def test_saleor_domain_header_missing() -> None:
     with pytest.raises(HTTPException) as excinfo:
         await saleor_domain_header(None)
 
     assert str(excinfo.value.detail) == "Missing X-SALEOR-DOMAIN header."
 
 
-async def test_saleor_domain_header():
+async def test_saleor_domain_header() -> None:
     assert await saleor_domain_header("saleor_domain") == "saleor_domain"
 
 
-async def test_saleor_token(mock_request):
-    assert await saleor_token(mock_request, "token") == "token"
+async def test_saleor_token(saleor_app: SaleorApp) -> None:
+    assert await saleor_token(saleor_app, "token") == "token"
 
 
-async def test_saleor_token_from_settings(mock_request):
-    assert await saleor_token(mock_request, None) == "test_token"
+async def test_saleor_token_from_settings(saleor_app: SaleorApp) -> None:
+    assert await saleor_token(saleor_app, None) == "test_token"
 
 
-async def test_saleor_token_missing(mock_request):
-    mock_request.app.development_auth_token = None
+async def test_saleor_token_missing(saleor_app: SaleorApp) -> None:
+    saleor_app.development_auth_token = None
+
     with pytest.raises(HTTPException) as excinfo:
-        assert await saleor_token(mock_request, None) == "test_token"
+        assert await saleor_token(saleor_app, None) == "test_token"
 
     assert str(excinfo.value.detail) == "Missing X-SALEOR-TOKEN header."
 
 
-async def test_verify_saleor_token(mock_request, mocker):
+async def test_verify_saleor_token(
+    saleor_app: SaleorApp,
+    mocker: MockerFixture,
+) -> None:
     mock_saleor_client = AsyncMock(SaleorClient)
     mock_saleor_client.__aenter__.return_value.execute.return_value = {
         "tokenVerify": {"isValid": True},
     }
     mocker.patch("saleor_app.deps.get_client_for_app", return_value=mock_saleor_client)
-    assert await verify_saleor_token(mock_request, "saleor_domain", "token")
+    assert await verify_saleor_token(saleor_app, "saleor_domain", "token")
 
 
-async def test_verify_saleor_token_invalid(mock_request, mocker):
+async def test_verify_saleor_token_invalid(
+    saleor_app: SaleorApp,
+    mocker: MockerFixture,
+) -> None:
     mock_saleor_client = AsyncMock(SaleorClient)
     mock_saleor_client.__aenter__.return_value.execute.return_value = {
         "tokenVerify": {"isValid": False},
     }
     mocker.patch("saleor_app.deps.get_client_for_app", return_value=mock_saleor_client)
     with pytest.raises(HTTPException) as excinfo:
-        await verify_saleor_token(mock_request, "saleor_domain", "token")
+        await verify_saleor_token(saleor_app, "saleor_domain", "token")
 
     assert (
         excinfo.value.detail
@@ -67,29 +76,36 @@ async def test_verify_saleor_token_invalid(mock_request, mocker):
     )
 
 
-async def test_verify_saleor_token_saleor_error(mock_request, mocker):
+async def test_verify_saleor_token_saleor_error(
+    saleor_app: SaleorApp,
+    mocker: MockerFixture,
+) -> None:
     mock_saleor_client = AsyncMock(SaleorClient)
     mock_saleor_client.__aenter__.return_value.execute.side_effect = GraphQLError(
-        "error",
+        errors=[{"message": "Invalid token", "locations": [{"line": 1, "column": 2}]}],
     )
     mocker.patch("saleor_app.deps.get_client_for_app", return_value=mock_saleor_client)
-    assert not await verify_saleor_token(mock_request, "saleor_domain", "token")
+    assert not await verify_saleor_token(saleor_app, "saleor_domain", "token")
 
 
-async def test_verify_saleor_domain(mock_request):
-    mock_request.app.validate_domain.return_value = True
-    assert await verify_saleor_domain(mock_request, "saleor_domain")
+async def test_verify_saleor_domain(saleor_app: SaleorApp) -> None:
+    saleor_app.validate_domain.return_value = True  # type: ignore[attr-defined]
+    assert await verify_saleor_domain(saleor_app, "saleor_domain")
 
 
-async def test_verify_saleor_domain_invalid(mock_request):
-    mock_request.app.validate_domain.return_value = False
+async def test_verify_saleor_domain_invalid(saleor_app: SaleorApp) -> None:
+    saleor_app.validate_domain.return_value = False  # type: ignore[attr-defined]
     with pytest.raises(HTTPException) as excinfo:
-        await verify_saleor_domain(mock_request, "saleor_domain")
+        await verify_saleor_domain(saleor_app, "saleor_domain")
 
     assert excinfo.value.detail == "Provided domain saleor_domain is invalid."
 
 
-async def test_verify_webhook_signature(get_webhook_details, mock_request, mocker):
+async def test_verify_webhook_signature(
+    get_webhook_details: GetWebhookDetails,
+    mock_request: Request,
+    mocker: MockerFixture,
+) -> None:
     mock_request.app.include_webhook_router(get_webhook_details)
     mock_request.app.get_webhook_details.return_value = WebhookData(
         webhook_id="webhook_id",
@@ -97,10 +113,14 @@ async def test_verify_webhook_signature(get_webhook_details, mock_request, mocke
     )
     mock_hmac_new = mocker.patch("saleor_app.deps.hmac.new")
     mock_hmac_new.return_value.hexdigest.return_value = "test_signature"
-    assert (
-        await verify_webhook_signature(mock_request, "test_signature", "saleor_domain")
-        is None
+
+    await verify_webhook_signature(
+        request=mock_request,
+        saleor_app=mock_request.app,
+        signature="test_signature",
+        domain_name="saleor_domain",
     )
+
     mock_hmac_new.assert_called_once_with(
         b"webhook_secret_key",
         b"request_body",
@@ -109,9 +129,9 @@ async def test_verify_webhook_signature(get_webhook_details, mock_request, mocke
 
 
 async def test_verify_webhook_signature_invalid(
-    get_webhook_details,
-    mock_request,
-    mocker,
+    get_webhook_details: GetWebhookDetails,
+    mock_request: Request,
+    mocker: MockerFixture,
 ):
     mock_request.app.include_webhook_router(get_webhook_details)
     mock_request.app.get_webhook_details.return_value = WebhookData(
@@ -122,6 +142,11 @@ async def test_verify_webhook_signature_invalid(
     mock_hmac_new.return_value.hexdigest.return_value = "test_signature"
 
     with pytest.raises(HTTPException) as excinfo:
-        await verify_webhook_signature(mock_request, "BAD_signature", "saleor_domain")
+        await verify_webhook_signature(
+            request=mock_request,
+            saleor_app=mock_request.app,
+            signature="BAD_signature",
+            domain_name="saleor_domain",
+        )
 
     assert excinfo.value.detail == "Invalid webhook signature for x-saleor-signature"

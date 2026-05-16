@@ -23,7 +23,7 @@ class SaleorClient:
     async def close(self):
         await self.session.close()
 
-    async def __aenter__(self) -> aiohttp.ClientSession:
+    async def __aenter__(self) -> "SaleorClient":
         return self
 
     async def __aexit__(

@@ -1,5 +1,6 @@
 """Core schemas for the Saleor App Framework."""
 
+from collections.abc import Callable
 from enum import Enum
 
 from pydantic import BaseModel
@@ -7,6 +8,8 @@ from pydantic import BaseModel
 DomainName = str
 AppToken = str
 Url = str
+
+GetWebhookDetails = Callable[[DomainName], "WebhookData"]
 
 
 class WebhookData(BaseModel):
