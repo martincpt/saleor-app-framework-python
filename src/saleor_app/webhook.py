@@ -1,12 +1,10 @@
 from collections.abc import Awaitable, Callable
-from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from fastapi.routing import APIRoute
 from starlette.responses import Response
 
 from saleor_app.deps import (
-    saleor_app,
     saleor_domain_header,
     verify_saleor_domain,
     verify_webhook_signature,
@@ -19,20 +17,14 @@ from saleor_app.schemas.handlers import (
 )
 from saleor_app.schemas.webhook import Webhook
 
-if TYPE_CHECKING:
-    from .app import SaleorApp
-
 SALEOR_EVENT_HEADER = "x-saleor-event"
 
 
 class WebhookRoute(APIRoute):
-    def get_route_handler(self) -> Callable[..., Awaitable[Response]]:
-        async def custom_route_handler(
-            request: Request,
-            saleor_app: "SaleorApp" = Depends(saleor_app),
-        ) -> Response:
+    def get_route_handler(self) -> Callable[[Request], Awaitable[Response]]:
+        async def custom_route_handler(request: Request) -> Response:
             if event_type := request.headers.get(SALEOR_EVENT_HEADER):
-                route = saleor_app.webhook_router.http_routes[event_type.upper()]
+                route = request.app.webhook_router.http_routes[event_type.upper()]
                 handler = route.get_route_handler()
                 response: Response = await handler(request)
                 return response
