@@ -6,7 +6,7 @@ from fastapi import Request
 from fastapi.testclient import TestClient
 
 from saleor_app.app import SaleorApp
-from saleor_app.schemas.core import GetWebhookData
+from saleor_app.schemas.core import GetWebhookCredentials
 from saleor_app.schemas.handlers import SaleorEventType, SQSUrl, WebHookHandlerSignature
 from saleor_app.schemas.manifest import Extension, Manifest
 from saleor_app.schemas.utils import LazyPath, LazyUrl
@@ -49,7 +49,7 @@ def manifest() -> Manifest:
 
 
 @pytest.fixture()
-def get_webhook_data() -> GetWebhookData:
+def get_webhook_credentials() -> GetWebhookCredentials:
     return AsyncMock()
 
 
@@ -88,10 +88,10 @@ def client(saleor_app: SaleorApp) -> Iterable[TestClient]:
 @pytest.fixture()
 def saleor_app_with_webhooks(
     saleor_app: SaleorApp,
-    get_webhook_data: GetWebhookData,
+    get_webhook_credentials: GetWebhookCredentials,
     webhook_handler: WebHookHandlerSignature,
 ) -> SaleorApp:
-    saleor_app.include_webhook_router(get_webhook_data)
+    saleor_app.include_webhook_router(get_webhook_credentials)
     saleor_app.webhook_router.http_event_route(SaleorEventType.PRODUCT_CREATED)(
         webhook_handler,
     )

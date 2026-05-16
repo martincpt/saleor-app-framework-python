@@ -124,7 +124,7 @@ async def verify_webhook_signature(
             detail=(f"Missing signature header - {SALEOR_SIGNATURE_HEADER}"),
         )
 
-    webhook_details = await saleor_app.get_webhook_data(domain_name)
+    webhook_details = await saleor_app.get_webhook_credentials(domain_name)
     content = await request.body()
     webhook_signature_bytes = bytes(signature, "utf-8")
 

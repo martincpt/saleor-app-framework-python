@@ -85,11 +85,11 @@ from saleor_app.deps import saleor_domain_header
 from saleor_app.schemas.handlers import SaleorEventType
 from saleor_app.schemas.webhook import Webhook
 from saleor_app.deps import ConfigurationFormDeps
-from saleor_app.schemas.core import DomainName, WebhookData
+from saleor_app.schemas.core import DomainName, WebhookCredentials
 from saleor_app.schemas.manifest import Manifest
 from saleor_app.schemas.utils import LazyUrl
 
-WEBHOOK_DATA_FILE = Path("webhook_data.json")
+WEBHOOK_CREDENTIALS_FILE = Path("webhook_credentials.json")
 
 
 async def validate_domain(saleor_domain: DomainName) -> bool:
@@ -100,15 +100,15 @@ async def validate_domain(saleor_domain: DomainName) -> bool:
 async def store_app_data(
     saleor_domain: DomainName,
     auth_token: str,
-    webhook_data: WebhookData,
+    webhook_credentials: WebhookCredentials,
 ) -> None:
-    print("Called store_app_data", saleor_domain, auth_token, webhook_data)
-    WEBHOOK_DATA_FILE.write_text(webhook_data.model_dump_json())
+    print("Called store_app_data", saleor_domain, auth_token, webhook_credentials)
+    WEBHOOK_CREDENTIALS_FILE.write_text(webhook_credentials.model_dump_json())
 
 
-async def get_webhook_data(saleor_domain: DomainName) -> WebhookData:
-    print("Called get_webhook_data", saleor_domain)
-    return WebhookData.model_validate_json(WEBHOOK_DATA_FILE.read_text())
+async def get_webhook_credentials(saleor_domain: DomainName) -> WebhookCredentials:
+    print("Called get_webhook_credentials", saleor_domain)
+    return WebhookCredentials.model_validate_json(WEBHOOK_CREDENTIALS_FILE.read_text())
 
 
 manifest = Manifest(
@@ -129,7 +129,7 @@ app = SaleorApp(
     manifest=manifest,
     validate_domain=validate_domain,
     store_app_data=store_app_data,
-    get_webhook_data=get_webhook_data,
+    get_webhook_credentials=get_webhook_credentials,
     # more arguments to come
     use_insecure_saleor_http=True,
     development_auth_token="dev_token",

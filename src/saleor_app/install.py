@@ -6,7 +6,7 @@ from .errors import InstallAppError
 from .saleor.exceptions import GraphQLError
 from .saleor.mutations import CREATE_WEBHOOK
 from .saleor.utils import get_client_for_app
-from .schemas.core import AppToken, DomainName, WebhookData
+from .schemas.core import AppToken, DomainName, WebhookCredentials
 from .schemas.handlers import WebhookSubscriptionMap
 from .schemas.manifest import Manifest
 
@@ -19,7 +19,7 @@ async def install_app(
     manifest: Manifest,
     events: WebhookSubscriptionMap,
     use_insecure_saleor_http: bool,
-) -> WebhookData:
+) -> WebhookCredentials:
     alphabet = string.ascii_letters + string.digits
     secret_key = "".join(secrets.choice(alphabet) for _ in range(20))
 
@@ -63,4 +63,7 @@ async def install_app(
         raise InstallAppError(message)
 
     saleor_webhook_id = response["webhookCreate"]["webhook"]["id"]
-    return WebhookData(webhook_id=saleor_webhook_id, webhook_secret_key=secret_key)
+    return WebhookCredentials(
+        webhook_id=saleor_webhook_id,
+        webhook_secret_key=secret_key,
+    )

@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock
 from saleor_app.install import install_app
 from saleor_app.saleor.client import SaleorClient
 from saleor_app.saleor.mutations import CREATE_WEBHOOK
-from saleor_app.schemas.core import WebhookData
+from saleor_app.schemas.core import WebhookCredentials
 
 
 async def test_install_app(mocker, manifest):
@@ -23,7 +23,7 @@ async def test_install_app(mocker, manifest):
         manifest=manifest,
         events={"queue_1": [("TEST_EVENT_1", None)], "url_1": [("TEST_EVENT_2", None)]},
         use_insecure_saleor_http=True,
-    ) == WebhookData(webhook_id="123", webhook_secret_key="A" * 20)
+    ) == WebhookCredentials(webhook_id="123", webhook_secret_key="A" * 20)
 
     mock_get_client_for_app.assert_called_once_with(
         "http://saleor_domain",
@@ -73,7 +73,7 @@ async def test_install_app_secure_https(mocker, manifest):
         manifest=manifest,
         events={"queue_1": [("TEST_EVENT_1", None)], "url_1": [("TEST_EVENT_2", None)]},
         use_insecure_saleor_http=False,
-    ) == WebhookData(webhook_id="123", webhook_secret_key="A" * 20)
+    ) == WebhookCredentials(webhook_id="123", webhook_secret_key="A" * 20)
 
     mock_get_client_for_app.assert_called_once_with(
         "https://saleor_domain",

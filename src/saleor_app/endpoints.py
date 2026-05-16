@@ -63,7 +63,7 @@ async def install(
         return
 
     try:
-        webhook_data = await install_app(
+        webhook_credentials = await install_app(
             saleor_domain=saleor_domain,
             auth_token=data.auth_token,
             manifest=saleor_app.manifest,
@@ -80,5 +80,5 @@ async def install(
     await saleor_app.store_app_data(
         saleor_domain,
         data.auth_token,
-        webhook_data,
+        webhook_credentials,
     )

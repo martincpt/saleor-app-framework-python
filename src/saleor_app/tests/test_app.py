@@ -2,7 +2,7 @@ import pytest
 from starlette.routing import NoMatchFound
 
 from saleor_app.app import Manifest, SaleorApp
-from saleor_app.schemas.core import GetWebhookData
+from saleor_app.schemas.core import GetWebhookCredentials
 from saleor_app.webhook import WebhookRouter
 
 
@@ -21,10 +21,10 @@ async def test_saleor_app_init(
 
 async def test_include_webhook_router(
     saleor_app: SaleorApp,
-    get_webhook_data: GetWebhookData,
+    get_webhook_credentials: GetWebhookCredentials,
 ) -> None:
-    saleor_app.include_webhook_router(get_webhook_data)
+    saleor_app.include_webhook_router(get_webhook_credentials)
 
-    assert saleor_app.get_webhook_data == get_webhook_data
+    assert saleor_app.get_webhook_credentials == get_webhook_credentials
     assert saleor_app.url_path_for("handle-webhook") == "/webhook"
     assert isinstance(saleor_app.webhook_router, WebhookRouter)

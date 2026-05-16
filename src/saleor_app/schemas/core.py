@@ -10,12 +10,12 @@ AppToken = str
 Url = str
 
 ValidateDomain = Callable[[DomainName], Awaitable[bool]]
-StoreAppData = Callable[[DomainName, AppToken, "WebhookData"], Awaitable[None]]
-GetWebhookData = Callable[[DomainName], Awaitable["WebhookData"]]
+StoreAppData = Callable[[DomainName, AppToken, "WebhookCredentials"], Awaitable[None]]
+GetWebhookCredentials = Callable[[DomainName], Awaitable["WebhookCredentials"]]
 
 
-class WebhookData(BaseModel):
-    """Webhook data for the Saleor App Framework."""
+class WebhookCredentials(BaseModel):
+    """Webhook credentials for the Saleor App Framework."""
 
     webhook_id: str
     webhook_secret_key: str
