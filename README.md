@@ -75,6 +75,8 @@ Manifest URL for local Docker access:
     http://host.docker.internal:5001/configuration/manifest
 
 ```python
+from pathlib import Path
+
 from fastapi.param_functions import Depends
 from fastapi.responses import PlainTextResponse
 
@@ -87,23 +89,21 @@ from saleor_app.schemas.core import DomainName, WebhookData
 from saleor_app.schemas.manifest import Manifest
 from saleor_app.schemas.utils import LazyUrl
 
+WEBHOOK_DATA_FILE = Path("webhook_data.json")
+
 
 async def validate_domain(saleor_domain: DomainName) -> bool:
     print("Called validate_domain", saleor_domain)
     return True
 
 
-stored_webhook: WebhookData
-
-
 async def store_app_data(
     saleor_domain: DomainName,
     auth_token: str,
     webhook_data: WebhookData,
-):
+) -> None:
     print("Called store_app_data", saleor_domain, auth_token, webhook_data)
-    global stored_webhook
-    stored_webhook = webhook_data
+    WEBHOOK_DATA_FILE.write_text(webhook_data.model_dump_json())
 
 
 manifest = Manifest(
@@ -151,7 +151,7 @@ app.include_saleor_app_routes()
 
 # ---- WEBHOOK ----
 async def get_webhook_details(saleor_domain: DomainName) -> WebhookData:
-    return stored_webhook
+    return WebhookData.model_validate_json(WEBHOOK_DATA_FILE.read_text())
 
 
 app.include_webhook_router(get_webhook_details=get_webhook_details)
@@ -179,6 +179,7 @@ async def product_deleted(
     saleor_domain=Depends(saleor_domain_header),
 ) -> None:
     print("Product deleted", payload, saleor_domain)
+
 
 ```
 
