@@ -77,7 +77,7 @@ async def install(
             detail="Incorrect token or not enough permissions",
         ) from exc
 
-    await saleor_app.save_app_data(
+    await saleor_app.store_app_data(
         saleor_domain,
         data.auth_token,
         webhook_data,

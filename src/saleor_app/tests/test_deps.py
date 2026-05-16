@@ -15,7 +15,7 @@ from saleor_app.deps import (
 )
 from saleor_app.saleor.client import SaleorClient
 from saleor_app.saleor.exceptions import GraphQLError
-from saleor_app.schemas.core import GetWebhookDetails, WebhookData
+from saleor_app.schemas.core import GetWebhookData, WebhookData
 
 
 async def test_saleor_domain_header_missing() -> None:
@@ -102,12 +102,12 @@ async def test_verify_saleor_domain_invalid(saleor_app: SaleorApp) -> None:
 
 
 async def test_verify_webhook_signature(
-    get_webhook_details: GetWebhookDetails,
+    get_webhook_data: GetWebhookData,
     mock_request: Request,
     mocker: MockerFixture,
 ) -> None:
-    mock_request.app.include_webhook_router(get_webhook_details)
-    mock_request.app.get_webhook_details.return_value = WebhookData(
+    mock_request.app.include_webhook_router(get_webhook_data)
+    mock_request.app.get_webhook_data.return_value = WebhookData(
         webhook_id="webhook_id",
         webhook_secret_key="webhook_secret_key",
     )
@@ -129,12 +129,12 @@ async def test_verify_webhook_signature(
 
 
 async def test_verify_webhook_signature_invalid(
-    get_webhook_details: GetWebhookDetails,
+    get_webhook_data: GetWebhookData,
     mock_request: Request,
     mocker: MockerFixture,
 ):
-    mock_request.app.include_webhook_router(get_webhook_details)
-    mock_request.app.get_webhook_details.return_value = WebhookData(
+    mock_request.app.include_webhook_router(get_webhook_data)
+    mock_request.app.get_webhook_data.return_value = WebhookData(
         webhook_id="webhook_id",
         webhook_secret_key="webhook_secret_key",
     )

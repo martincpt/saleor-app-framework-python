@@ -97,17 +97,17 @@ async def validate_domain(saleor_domain: DomainName) -> bool:
     return True
 
 
-async def save_app_data(
+async def store_app_data(
     saleor_domain: DomainName,
     auth_token: str,
     webhook_data: WebhookData,
 ) -> None:
-    print("Called save_app_data", saleor_domain, auth_token, webhook_data)
+    print("Called store_app_data", saleor_domain, auth_token, webhook_data)
     WEBHOOK_DATA_FILE.write_text(webhook_data.model_dump_json())
 
 
-async def get_webhook_details(saleor_domain: DomainName) -> WebhookData:
-    print("Called get_webhook_details", saleor_domain)
+async def get_webhook_data(saleor_domain: DomainName) -> WebhookData:
+    print("Called get_webhook_data", saleor_domain)
     return WebhookData.model_validate_json(WEBHOOK_DATA_FILE.read_text())
 
 
@@ -128,8 +128,8 @@ manifest = Manifest(
 app = SaleorApp(
     manifest=manifest,
     validate_domain=validate_domain,
-    save_app_data=save_app_data,
-    get_webhook_details=get_webhook_details,
+    store_app_data=store_app_data,
+    get_webhook_data=get_webhook_data,
     # more arguments to come
     use_insecure_saleor_http=True,
     development_auth_token="dev_token",

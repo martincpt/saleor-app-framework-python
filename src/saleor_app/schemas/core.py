@@ -10,8 +10,8 @@ AppToken = str
 Url = str
 
 ValidateDomain = Callable[[DomainName], Awaitable[bool]]
-SaveAppData = Callable[[DomainName, AppToken, "WebhookData"], Awaitable[None]]
-GetWebhookDetails = Callable[[DomainName], "WebhookData"]
+StoreAppData = Callable[[DomainName, AppToken, "WebhookData"], Awaitable[None]]
+GetWebhookData = Callable[[DomainName], Awaitable["WebhookData"]]
 
 
 class WebhookData(BaseModel):

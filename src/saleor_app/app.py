@@ -4,8 +4,8 @@ from fastapi import APIRouter, FastAPI
 
 from .endpoints import install, manifest
 from .schemas.core import (
-    GetWebhookDetails,
-    SaveAppData,
+    GetWebhookData,
+    StoreAppData,
     ValidateDomain,
 )
 from .schemas.manifest import Manifest
@@ -17,12 +17,12 @@ class SaleorApp(FastAPI):
 
     manifest: Manifest
     validate_domain: ValidateDomain
-    save_app_data: SaveAppData
+    store_app_data: StoreAppData
     use_insecure_saleor_http: bool
     development_auth_token: str | None
     configuration_router: APIRouter
 
-    get_webhook_details: GetWebhookDetails
+    get_webhook_data: GetWebhookData
     webhook_router: WebhookRouter
 
     def __init__(
@@ -30,8 +30,8 @@ class SaleorApp(FastAPI):
         *,
         manifest: Manifest,
         validate_domain: ValidateDomain,
-        save_app_data: SaveAppData,
-        get_webhook_details: GetWebhookDetails | None = None,
+        store_app_data: StoreAppData,
+        get_webhook_data: GetWebhookData | None = None,
         use_insecure_saleor_http: bool = False,
         development_auth_token: str | None = None,
         include_saleor_app_routes: bool = True,
@@ -43,7 +43,7 @@ class SaleorApp(FastAPI):
         self.manifest = manifest
 
         self.validate_domain = validate_domain
-        self.save_app_data = save_app_data
+        self.store_app_data = store_app_data
 
         self.use_insecure_saleor_http = use_insecure_saleor_http
         self.development_auth_token = development_auth_token
@@ -56,8 +56,8 @@ class SaleorApp(FastAPI):
         if include_saleor_app_routes:
             self.include_saleor_app_routes()
 
-        if get_webhook_details:
-            self.include_webhook_router(get_webhook_details)
+        if get_webhook_data:
+            self.include_webhook_router(get_webhook_data)
 
     def include_saleor_app_routes(self) -> None:
         """Include Saleor app routes."""
@@ -77,9 +77,9 @@ class SaleorApp(FastAPI):
 
         self.include_router(self.configuration_router)
 
-    def include_webhook_router(self, get_webhook_details: GetWebhookDetails) -> None:
+    def include_webhook_router(self, get_webhook_data: GetWebhookData) -> None:
         """Include Saleor webhook routes."""
-        self.get_webhook_details = get_webhook_details
+        self.get_webhook_data = get_webhook_data
         self.webhook_router = WebhookRouter(
             prefix="/webhook",
             responses={

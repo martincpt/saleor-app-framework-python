@@ -1,6 +1,7 @@
 from collections import defaultdict
 from unittest.mock import AsyncMock
 
+import pytest
 from fastapi.testclient import TestClient
 
 from saleor_app.app import SaleorApp
@@ -21,9 +22,8 @@ async def test_manifest(client: TestClient, saleor_app: SaleorApp) -> None:
 
 async def test_install(
     client: TestClient,
-    saleor_app_with_webhooks,
-    get_webhook_details,
-    monkeypatch,
+    saleor_app_with_webhooks: SaleorApp,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     install_app_mock = AsyncMock()
     monkeypatch.setattr("saleor_app.endpoints.install_app", install_app_mock)
