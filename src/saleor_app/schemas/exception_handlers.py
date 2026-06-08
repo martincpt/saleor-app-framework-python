@@ -1,6 +1,6 @@
 from fastapi import Request
 
-from saleor_app.saleor.exceptions import IgnoredPrincipalError
+from saleor_app.client.exceptions import IgnoredPrincipalError
 
 
 class IgnoredIssuingPrincipalChecker:

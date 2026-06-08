@@ -1,6 +1,6 @@
 import pytest
 
-from saleor_app.saleor.exceptions import IgnoredPrincipalError
+from saleor_app.client.exceptions import IgnoredPrincipalError
 from saleor_app.schemas.exception_handlers import IgnoredIssuingPrincipalChecker
 
 

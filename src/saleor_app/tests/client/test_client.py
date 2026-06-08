@@ -4,8 +4,8 @@ import aiohttp
 import pytest
 from aiohttp import ClientTimeout
 
-from saleor_app.saleor.client import SaleorClient
-from saleor_app.saleor.exceptions import GraphQLError
+from saleor_app.client.client import SaleorClient
+from saleor_app.client.exceptions import GraphQLError
 
 
 @pytest.mark.parametrize(

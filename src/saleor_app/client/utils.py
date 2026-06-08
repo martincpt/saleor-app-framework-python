@@ -1,4 +1,4 @@
-from saleor_app.saleor.client import SaleorClient
+from saleor_app.client.client import SaleorClient
 from saleor_app.schemas.manifest import Manifest
 
 

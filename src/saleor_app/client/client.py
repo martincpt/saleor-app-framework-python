@@ -3,7 +3,7 @@ import logging
 import aiohttp
 from aiohttp.client import ClientTimeout
 
-from saleor_app.saleor.exceptions import GraphQLError
+from saleor_app.client.exceptions import GraphQLError
 
 logger = logging.getLogger("saleor.client")
 

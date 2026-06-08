@@ -6,6 +6,8 @@ from fastapi import HTTPException, Request
 from pytest_mock import MockerFixture
 
 from saleor_app.app import SaleorApp
+from saleor_app.client.client import SaleorClient
+from saleor_app.client.exceptions import GraphQLError
 from saleor_app.deps import (
     saleor_domain_header,
     saleor_token,
@@ -13,8 +15,6 @@ from saleor_app.deps import (
     verify_saleor_token,
     verify_webhook_signature,
 )
-from saleor_app.saleor.client import SaleorClient
-from saleor_app.saleor.exceptions import GraphQLError
 from saleor_app.schemas.core import GetWebhookCredentials, WebhookCredentials
 
 

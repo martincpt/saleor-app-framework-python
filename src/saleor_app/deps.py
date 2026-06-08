@@ -7,9 +7,9 @@ from typing import TYPE_CHECKING
 import jwt
 from fastapi import Depends, Header, HTTPException, Query, Request
 
-from saleor_app.saleor.exceptions import GraphQLError
-from saleor_app.saleor.mutations import VERIFY_TOKEN
-from saleor_app.saleor.utils import get_client_for_app
+from saleor_app.client.exceptions import GraphQLError
+from saleor_app.client.mutations import VERIFY_TOKEN
+from saleor_app.client.utils import get_client_for_app
 from saleor_app.schemas.core import DomainName
 
 from .schemas.core import SaleorPermissions

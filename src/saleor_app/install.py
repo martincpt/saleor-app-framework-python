@@ -2,10 +2,10 @@ import logging
 import secrets
 import string
 
+from .client.exceptions import GraphQLError
+from .client.mutations import CREATE_WEBHOOK
+from .client.utils import get_client_for_app
 from .errors import InstallAppError
-from .saleor.exceptions import GraphQLError
-from .saleor.mutations import CREATE_WEBHOOK
-from .saleor.utils import get_client_for_app
 from .schemas.core import AppToken, DomainName, WebhookCredentials
 from .schemas.handlers import WebhookSubscriptionMap
 from .schemas.manifest import Manifest

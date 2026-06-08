@@ -5,10 +5,10 @@ from typing import TYPE_CHECKING
 from fastapi import Depends, Request
 from fastapi.exceptions import HTTPException
 
+from .client.exceptions import GraphQLError
 from .deps import saleor_app, saleor_domain_header, verify_saleor_domain
 from .errors import InstallAppError
 from .install import install_app
-from .saleor.exceptions import GraphQLError
 from .schemas.core import InstallData
 from .schemas.manifest import Manifest
 from .schemas.utils import LazyUrl
