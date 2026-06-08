@@ -6,16 +6,16 @@ from fastapi import Depends, Request
 from fastapi.exceptions import HTTPException
 
 from .client.exceptions import GraphQLError
+from .core.install import InstallData
+from .core.manifest import Manifest
+from .core.utils import LazyUrl
 from .deps import saleor_app, saleor_domain_header, verify_saleor_domain
 from .errors import InstallAppError
 from .install import install_app
-from .schemas.core import InstallData
-from .schemas.manifest import Manifest
-from .schemas.utils import LazyUrl
 
 if TYPE_CHECKING:
     from .app import SaleorApp
-    from .schemas.handlers import WebhookSubscriptionMap
+    from .core.types import WebhookSubscriptionMap
 
 logger = logging.getLogger(__name__)
 

@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock
 
 from saleor_app.client.client import SaleorClient
 from saleor_app.client.mutations import CREATE_WEBHOOK
+from saleor_app.core.install import WebhookCredentials
 from saleor_app.install import install_app
-from saleor_app.schemas.core import WebhookCredentials
 
 
 async def test_install_app(mocker, manifest):

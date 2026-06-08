@@ -2,13 +2,13 @@
 
 from fastapi import APIRouter, FastAPI
 
-from .endpoints import install, manifest
-from .schemas.core import (
+from .core.manifest import Manifest
+from .core.types import (
     GetWebhookCredentials,
     StoreAppData,
     ValidateDomain,
 )
-from .schemas.manifest import Manifest
+from .endpoints import install, manifest
 from .webhook import WebhookRoute, WebhookRouter
 
 

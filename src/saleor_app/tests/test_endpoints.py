@@ -5,8 +5,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 from saleor_app.app import SaleorApp
+from saleor_app.core.enums import SaleorEventType
 from saleor_app.deps import SALEOR_DOMAIN_HEADER
-from saleor_app.schemas.handlers import SaleorEventType
 
 
 async def test_manifest(client: TestClient, saleor_app: SaleorApp) -> None:

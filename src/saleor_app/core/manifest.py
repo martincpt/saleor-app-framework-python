@@ -1,40 +1,9 @@
 """Manifest schemas for the Saleor App Framework."""
 
-from enum import Enum
-
 from pydantic import AnyHttpUrl, BaseModel, ConfigDict, Field
 
-from saleor_app.schemas.utils import LazyPath, LazyUrl
-
-
-class TargetType(str, Enum):
-    """Target types for the Saleor App Framework."""
-
-    POPUP = "POPUP"
-    APP_PAGE = "APP_PAGE"
-
-
-class MountType(str, Enum):
-    """Mount types for the Saleor App Framework."""
-
-    CUSTOMER_DETAILS_MORE_ACTIONS = "CUSTOMER_DETAILS_MORE_ACTIONS"
-    CUSTOMER_OVERVIEW_CREATE = "CUSTOMER_OVERVIEW_CREATE"
-    CUSTOMER_OVERVIEW_MORE_ACTIONS = "CUSTOMER_OVERVIEW_MORE_ACTIONS"
-
-    NAVIGATION_CATALOG = "NAVIGATION_CATALOG"
-    NAVIGATION_CUSTOMERS = "NAVIGATION_CUSTOMERS"
-    NAVIGATION_DISCOUNTS = "NAVIGATION_DISCOUNTS"
-    NAVIGATION_ORDERS = "NAVIGATION_ORDERS"
-    NAVIGATION_PAGES = "NAVIGATION_PAGES"
-    NAVIGATION_TRANSLATIONS = "NAVIGATION_TRANSLATIONS"
-
-    ORDER_DETAILS_MORE_ACTIONS = "ORDER_DETAILS_MORE_ACTIONS"
-    ORDER_OVERVIEW_CREATE = "ORDER_OVERVIEW_CREATE"
-    ORDER_OVERVIEW_MORE_ACTIONS = "ORDER_OVERVIEW_MORE_ACTIONS"
-
-    PRODUCT_DETAILS_MORE_ACTIONS = "PRODUCT_DETAILS_MORE_ACTIONS"
-    PRODUCT_OVERVIEW_CREATE = "PRODUCT_OVERVIEW_CREATE"
-    PRODUCT_OVERVIEW_MORE_ACTIONS = "PRODUCT_OVERVIEW_MORE_ACTIONS"
+from saleor_app.core.enums import MountType, TargetType
+from saleor_app.core.utils import LazyPath, LazyUrl
 
 
 class Extension(BaseModel):

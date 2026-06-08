@@ -1,17 +1,33 @@
-"""Handlers for the Saleor App Framework."""
+"""Enums for the Saleor App Framework."""
 
-from collections.abc import Awaitable, Callable
 from enum import Enum
-from typing import Annotated
 
-from pydantic import AnyUrl, BaseModel, UrlConstraints
 
-from saleor_app.schemas.core import DomainName
-from saleor_app.schemas.webhook import Webhook
+class SaleorPermissions(str, Enum):
+    """Permissions for the Saleor App Framework."""
 
-WebhookSubscription = tuple["SaleorEventType", str | None]
-WebhookSubscriptionMap = dict[str, list[WebhookSubscription]]
-WebHookHandlerSignature = Callable[[list[Webhook], DomainName], Awaitable] | None
+    HANDLE_CHECKOUTS = "HANDLE_CHECKOUTS"
+    HANDLE_PAYMENTS = "HANDLE_PAYMENTS"
+    HANDLE_TAXES = "HANDLE_TAXES"
+    IMPERSONATE_USER = "IMPERSONATE_USER"
+    MANAGE_APPS = "MANAGE_APPS"
+    MANAGE_CHANNELS = "MANAGE_CHANNELS"
+    MANAGE_CHECKOUTS = "MANAGE_CHECKOUTS"
+    MANAGE_DISCOUNTS = "MANAGE_DISCOUNTS"
+    MANAGE_GIFT_CARD = "MANAGE_GIFT_CARD"
+    MANAGE_MENUS = "MANAGE_MENUS"
+    MANAGE_OBSERVABILITY = "MANAGE_OBSERVABILITY"
+    MANAGE_ORDERS = "MANAGE_ORDERS"
+    MANAGE_PAGES = "MANAGE_PAGES"
+    MANAGE_PAGE_TYPES_AND_ATTRIBUTES = "MANAGE_PAGE_TYPES_AND_ATTRIBUTES"
+    MANAGE_PLUGINS = "MANAGE_PLUGINS"
+    MANAGE_PRODUCTS = "MANAGE_PRODUCTS"
+    MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES = "MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES"
+    MANAGE_SETTINGS = "MANAGE_SETTINGS"
+    MANAGE_SHIPPING = "MANAGE_SHIPPING"
+    MANAGE_STAFF = "MANAGE_STAFF"
+    MANAGE_TRANSLATIONS = "MANAGE_TRANSLATIONS"
+    MANAGE_USERS = "MANAGE_USERS"
 
 
 class SaleorEventType(str, Enum):
@@ -126,11 +142,38 @@ class SaleorEventType(str, Enum):
     CHECKOUT_FILTER_SHIPPING_METHODS = "CHECKOUT_FILTER_SHIPPING_METHODS"
 
 
-SQSUrl = Annotated[AnyUrl, UrlConstraints(allowed_schemes=["awssqs"])]
+class TargetType(str, Enum):
+    """Target types for the Saleor App Framework."""
+
+    POPUP = "POPUP"
+    APP_PAGE = "APP_PAGE"
 
 
-class SQSHandler(BaseModel):
-    """SQS handler for the Saleor App Framework."""
+class MountType(str, Enum):
+    """Mount types for the Saleor App Framework."""
 
-    target_url: SQSUrl
-    handler: WebHookHandlerSignature
+    CUSTOMER_DETAILS_MORE_ACTIONS = "CUSTOMER_DETAILS_MORE_ACTIONS"
+    CUSTOMER_OVERVIEW_CREATE = "CUSTOMER_OVERVIEW_CREATE"
+    CUSTOMER_OVERVIEW_MORE_ACTIONS = "CUSTOMER_OVERVIEW_MORE_ACTIONS"
+
+    NAVIGATION_CATALOG = "NAVIGATION_CATALOG"
+    NAVIGATION_CUSTOMERS = "NAVIGATION_CUSTOMERS"
+    NAVIGATION_DISCOUNTS = "NAVIGATION_DISCOUNTS"
+    NAVIGATION_ORDERS = "NAVIGATION_ORDERS"
+    NAVIGATION_PAGES = "NAVIGATION_PAGES"
+    NAVIGATION_TRANSLATIONS = "NAVIGATION_TRANSLATIONS"
+
+    ORDER_DETAILS_MORE_ACTIONS = "ORDER_DETAILS_MORE_ACTIONS"
+    ORDER_OVERVIEW_CREATE = "ORDER_OVERVIEW_CREATE"
+    ORDER_OVERVIEW_MORE_ACTIONS = "ORDER_OVERVIEW_MORE_ACTIONS"
+
+    PRODUCT_DETAILS_MORE_ACTIONS = "PRODUCT_DETAILS_MORE_ACTIONS"
+    PRODUCT_OVERVIEW_CREATE = "PRODUCT_OVERVIEW_CREATE"
+    PRODUCT_OVERVIEW_MORE_ACTIONS = "PRODUCT_OVERVIEW_MORE_ACTIONS"
+
+
+class PrincipalType(str, Enum):
+    """Principal types for the Saleor App Framework."""
+
+    app = "app"
+    user = "user"

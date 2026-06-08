@@ -6,10 +6,11 @@ from fastapi import Request
 from fastapi.testclient import TestClient
 
 from saleor_app.app import SaleorApp
-from saleor_app.schemas.core import GetWebhookCredentials
-from saleor_app.schemas.handlers import SaleorEventType, SQSUrl, WebHookHandlerSignature
-from saleor_app.schemas.manifest import Extension, Manifest
-from saleor_app.schemas.utils import LazyPath, LazyUrl
+from saleor_app.core.enums import SaleorEventType
+from saleor_app.core.manifest import Extension, Manifest
+from saleor_app.core.sqs import SQSUrl
+from saleor_app.core.types import GetWebhookCredentials, WebHookHandlerSignature
+from saleor_app.core.utils import LazyPath, LazyUrl
 from saleor_app.settings import AWSSettings
 
 

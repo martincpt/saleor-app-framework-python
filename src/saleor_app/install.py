@@ -5,10 +5,10 @@ import string
 from .client.exceptions import GraphQLError
 from .client.mutations import CREATE_WEBHOOK
 from .client.utils import get_client_for_app
+from .core.install import WebhookCredentials
+from .core.manifest import Manifest
+from .core.types import AppToken, DomainName, WebhookSubscriptionMap
 from .errors import InstallAppError
-from .schemas.core import AppToken, DomainName, WebhookCredentials
-from .schemas.handlers import WebhookSubscriptionMap
-from .schemas.manifest import Manifest
 
 logger = logging.getLogger(__name__)
 

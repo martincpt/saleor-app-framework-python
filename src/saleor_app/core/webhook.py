@@ -1,11 +1,12 @@
 """Webhook schemas for the Saleor App Framework."""
 
 from datetime import datetime
-from enum import Enum
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 from pydantic.fields import Field
+
+from saleor_app.core.enums import PrincipalType
 
 
 class WebhookV1(BaseModel):
@@ -15,13 +16,6 @@ class WebhookV1(BaseModel):
         extra="allow",
         frozen=True,
     )
-
-
-class PrincipalType(str, Enum):
-    """Principal types for the Saleor App Framework."""
-
-    app = "app"
-    user = "user"
 
 
 class Principal(BaseModel):

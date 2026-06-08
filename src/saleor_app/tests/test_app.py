@@ -2,7 +2,7 @@ import pytest
 from starlette.routing import NoMatchFound
 
 from saleor_app.app import Manifest, SaleorApp
-from saleor_app.schemas.core import GetWebhookCredentials
+from saleor_app.core.types import GetWebhookCredentials
 from saleor_app.webhook import WebhookRouter
 
 

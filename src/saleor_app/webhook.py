@@ -4,18 +4,15 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from fastapi.routing import APIRoute
 from starlette.responses import Response
 
+from saleor_app.core.enums import SaleorEventType
+from saleor_app.core.sqs import SQSHandler, SQSUrl
+from saleor_app.core.types import WebHookHandlerSignature
+from saleor_app.core.webhook import Webhook
 from saleor_app.deps import (
     saleor_domain_header,
     verify_saleor_domain,
     verify_webhook_signature,
 )
-from saleor_app.schemas.handlers import (
-    SaleorEventType,
-    SQSHandler,
-    SQSUrl,
-    WebHookHandlerSignature,
-)
-from saleor_app.schemas.webhook import Webhook
 
 SALEOR_EVENT_HEADER = "x-saleor-event"
 

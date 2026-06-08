@@ -10,9 +10,9 @@ from fastapi import Depends, Header, HTTPException, Query, Request
 from saleor_app.client.exceptions import GraphQLError
 from saleor_app.client.mutations import VERIFY_TOKEN
 from saleor_app.client.utils import get_client_for_app
-from saleor_app.schemas.core import DomainName
+from saleor_app.core.types import DomainName
 
-from .schemas.core import SaleorPermissions
+from .core.enums import SaleorPermissions
 
 if TYPE_CHECKING:
     from .app import SaleorApp

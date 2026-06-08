@@ -1,7 +1,7 @@
 import pytest
 
 from saleor_app.client.exceptions import IgnoredPrincipalError
-from saleor_app.schemas.exception_handlers import IgnoredIssuingPrincipalChecker
+from saleor_app.core.exception_handlers import IgnoredIssuingPrincipalChecker
 
 
 async def test_ignored_issuing_principal_checker_raise_exception(
