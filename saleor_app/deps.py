@@ -48,12 +48,7 @@ async def saleor_token(
     saleor_app: "SaleorApp" = Depends(saleor_app),
     token: str | None = Header(None, alias=SALEOR_TOKEN_HEADER),
 ) -> str:
-    """Get the Saleor token from the request headers.
-
-    I'm still trying to figure out what is `saleor_token` and how does it differ
-    from `saleor_domain_header`, and wether `development_auth_token`
-    makes any sense here.
-    """
+    """Extract the Saleor auth token from the request header, falling back to the development token."""
     if saleor_app.development_auth_token:
         token = token or saleor_app.development_auth_token
 
