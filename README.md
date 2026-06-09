@@ -5,9 +5,7 @@ Saleor App Framework (Python) provides an easy way to install Your app into the 
 Supported features:
 
 - Installation
-- Webhooks handling
-- Exception handling
-- Ignoring Webhooks triggered by your app
+- Webhooks handling (HTTP and SQS)
 
 More on usage You can find in the official [Documentation](https://mirumee.github.io/saleor-app-framework-python/)
 
@@ -40,31 +38,40 @@ The original repository is pretty much stale and unmaintained. This fork aims to
 ### Important changes
 
 - **Dependency Management**
-  - The project now utilizes uv for dependency management, replacing poetry.
+  - The project now uses uv for dependency management, replacing poetry.
+  - Removed unused runtime dependencies: `aiofiles`, `jinja2`, `uvicorn`.
 
 - **Python Version**
   - The minimum required Python version is now 3.12.
 
-- **Pydantic**:
+- **Pydantic**
   - Updated to version 2.
 
-- **Pre-commit Configuration**:
+- **Package Layout**
+  - Removed the `src/` layout. `saleor_app/` now lives at the project root.
+  - Tests moved from `saleor_app/tests/` to a top-level `tests/` directory.
+  - Added `py.typed` marker (PEP 561) for typed package support.
+
+- **Package Structure**
+  - `saleor_app.schemas` renamed to `saleor_app.core`, with internal modules split by domain (`enums`, `types`, `install`, `manifest`, `webhook`, `sqs`).
+  - `saleor_app.saleor` renamed to `saleor_app.client`.
+  - All enums consolidated into `saleor_app.core.enums`.
+  - All type aliases consolidated into `saleor_app.core.types`.
+  - Intra-package imports converted to relative imports.
+
+- **SaleorClient**
+  - `SaleorClient.for_app(url, manifest, **kwargs)` factory classmethod replaces the standalone `get_client_for_app` helper.
+
+- **Pre-commit Configuration**
   - Flake8 and isort have been replaced by Ruff.
   - MyPy has been added.
+  - Resolved all previously suppressed lint ignores (ANN, D-series).
 
 - **GitHub CI**
   - Now configured to use pre-commit.
 
 - **Tox**
-  - Tox has been removed, with possible future reconsideration for re-enablement.
-
-### TODO
-
-- Resolve and Remove Ruff Ignores in pyproject.toml
-  - Annotation-related: ANN001, ANN201, ANN202, ANN204
-  - Docstring-related: D100, D101, D102, D103, D105, D107, D400, D415
-
-- Update documentation and README.md
+  - Tox has been removed.
 
 ### Minimum working example
 
@@ -81,13 +88,13 @@ from fastapi.param_functions import Depends
 from fastapi.responses import PlainTextResponse
 
 from saleor_app.app import SaleorApp
-from saleor_app.deps import saleor_domain_header
-from saleor_app.schemas.handlers import SaleorEventType
-from saleor_app.schemas.webhook import Webhook
-from saleor_app.deps import ConfigurationFormDeps
-from saleor_app.schemas.core import DomainName, WebhookCredentials
-from saleor_app.schemas.manifest import Manifest
-from saleor_app.schemas.utils import LazyUrl
+from saleor_app.core.enums import SaleorEventType
+from saleor_app.core.install import WebhookCredentials
+from saleor_app.core.manifest import Manifest
+from saleor_app.core.types import DomainName
+from saleor_app.core.utils import LazyUrl
+from saleor_app.core.webhook import Webhook
+from saleor_app.deps import ConfigurationFormDeps, saleor_domain_header
 
 WEBHOOK_CREDENTIALS_FILE = Path("webhook_credentials.json")
 
