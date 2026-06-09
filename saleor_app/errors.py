@@ -1,10 +1,13 @@
+"""Error classes for the Saleor App Framework."""
+
+
 class SaleorAppError(Exception):
-    """Generic Saleor App Error, all framework errros inherit from this"""
+    """Base error for all Saleor App Framework exceptions."""
 
 
 class InstallAppError(SaleorAppError):
-    """Install App error"""
+    """Raised when webhook installation fails during app setup."""
 
 
 class ConfigurationError(SaleorAppError):
-    """App is misconfigured"""
+    """Raised when the app is configured incorrectly."""

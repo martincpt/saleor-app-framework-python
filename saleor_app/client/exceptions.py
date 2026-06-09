@@ -1,19 +1,30 @@
+"""Exception classes for the Saleor GraphQL client."""
+
 from collections.abc import Sequence
 from typing import Any
 
 
 class GraphQLError(Exception):
-    """Raised on Saleor GraphQL errors"""
+    """Raised when the Saleor GraphQL API returns errors."""
 
     def __init__(
         self,
         errors: Sequence[dict[str, Any]],
         response_data: dict[str, Any] | None = None,
-    ):
+    ) -> None:
         self.errors = errors
         self.response_data = response_data
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (
             f"GraphQLError: {', '.join([error['message'] for error in self.errors])}."
         )
+
+
+class IgnoredPrincipalError(Exception):
+    """Raised when a webhook event is ignored due to principal ID filtering."""
+
+    message = "Ignore webhook with {} principal ids."
+
+    def __init__(self, principal_ids: list[str]) -> None:
+        super().__init__(self.message.format(",".join(principal_ids)))
