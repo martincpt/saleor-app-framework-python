@@ -37,7 +37,22 @@ class SaleorApp(FastAPI):
         include_saleor_app_routes: bool = True,
         **kwargs,
     ) -> None:
-        """Initialize SaleorApp instance."""
+        """Initialize a Saleor app with the given manifest and callbacks.
+
+        Args:
+        ----
+            manifest: The app manifest describing identity, permissions, and extensions.
+            validate_domain: Async callback that returns True if the Saleor domain is trusted.
+            store_app_data: Async callback invoked after installation to persist credentials.
+            get_webhook_credentials: Async callback that retrieves stored credentials for a
+                domain. Required to enable the webhook router.
+            use_insecure_saleor_http: If True, connect to Saleor over HTTP instead of HTTPS.
+            development_auth_token: Optional fallback token when no auth header is present,
+                for use during local development.
+            include_saleor_app_routes: If True, register the manifest and install endpoints.
+            **kwargs: Passed directly to FastAPI.
+
+        """
         super().__init__(**kwargs)
 
         self.manifest = manifest
