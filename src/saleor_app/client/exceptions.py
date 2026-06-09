@@ -17,10 +17,3 @@ class GraphQLError(Exception):
         return (
             f"GraphQLError: {', '.join([error['message'] for error in self.errors])}."
         )
-
-
-class IgnoredPrincipalError(Exception):
-    message = "Ignore webhook with {} principal ids."
-
-    def __init__(self, principal_ids: list[str]):
-        super().__init__(self.message.format(",".join(principal_ids)))

@@ -7,7 +7,6 @@ from saleor_app.core.enums import (
     SaleorPermissions,
     TargetType,
 )
-from saleor_app.core.exception_handlers import IgnoredIssuingPrincipalChecker
 from saleor_app.core.install import InstallData, WebhookCredentials
 from saleor_app.core.manifest import Extension, Manifest
 from saleor_app.core.sqs import SQSHandler, SQSUrl
@@ -37,7 +36,6 @@ __all__ = [
     "DomainName",
     "Extension",
     "GetWebhookCredentials",
-    "IgnoredIssuingPrincipalChecker",
     "InstallData",
     "LazyPath",
     "LazyUrl",
