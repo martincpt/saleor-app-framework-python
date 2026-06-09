@@ -1,3 +1,5 @@
+"""GraphQL mutation strings for the Saleor API."""
+
 CREATE_WEBHOOK = """
 mutation WebhookCreate($input: WebhookCreateInput!) {
   webhookCreate(input: $input) {
