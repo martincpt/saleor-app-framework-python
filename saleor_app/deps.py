@@ -1,3 +1,5 @@
+"""FastAPI dependency functions and classes for the Saleor App Framework."""
+
 import hashlib
 import hmac
 import logging
@@ -32,6 +34,7 @@ def saleor_app(request: Request) -> "SaleorApp":
 async def saleor_domain_header(
     saleor_domain: str | None = Header(None, alias=SALEOR_DOMAIN_HEADER),
 ) -> DomainName:
+    """Extract and validate the x-saleor-domain header."""
     if not saleor_domain:
         logger.warning(f"Missing {SALEOR_DOMAIN_HEADER.upper()} header.")
         raise HTTPException(
@@ -67,6 +70,7 @@ async def verify_saleor_token(
     saleor_domain: DomainName = Depends(saleor_domain_header),
     token: str = Depends(saleor_token),
 ) -> bool:
+    """Verify the Saleor auth token against the Saleor API."""
     schema = "http" if saleor_app.use_insecure_saleor_http else "https"
     url = f"{schema}://{saleor_domain}"
 
@@ -99,6 +103,7 @@ async def verify_saleor_domain(
     saleor_app: "SaleorApp" = Depends(saleor_app),
     saleor_domain: DomainName = Depends(saleor_domain_header),
 ) -> bool:
+    """Verify the Saleor domain using the app's validate_domain callback."""
     domain_is_valid = await saleor_app.validate_domain(saleor_domain)
 
     if not domain_is_valid:
@@ -117,6 +122,7 @@ async def verify_webhook_signature(
     signature: str | None = Header(None, alias=SALEOR_SIGNATURE_HEADER),
     domain_name: DomainName = Depends(saleor_domain_header),
 ) -> None:
+    """Verify the HMAC-SHA256 webhook signature from the request header."""
     if not signature:
         raise HTTPException(
             status_code=401,
@@ -143,13 +149,23 @@ async def verify_webhook_signature(
 
 
 def require_permission(permissions: list[SaleorPermissions]) -> Callable[..., None]:
-    """Validates is the requesting principal is authorized for the specified action
+    """Return a FastAPI dependency that enforces the given Saleor permissions.
 
-    Usage:
+    Decodes the JWT from the request and checks that the caller holds all
+    listed permissions. Raises HTTP 403 if any required permission is missing.
 
-    ```
-    Depends(require_permission([SaleorPermissions.MANAGE_PRODUCTS]))
-    ```
+    Args:
+    ----
+        permissions: List of ``SaleorPermissions`` the caller must hold.
+
+    Returns:
+    -------
+        A FastAPI dependency callable suitable for use with ``Depends()``.
+
+    Example:
+    -------
+        ``Depends(require_permission([SaleorPermissions.MANAGE_PRODUCTS]))``
+
     """
 
     def func(
@@ -157,6 +173,7 @@ def require_permission(permissions: list[SaleorPermissions]) -> Callable[..., No
         _saleor_domain: DomainName = Depends(saleor_domain_header),
         _token_is_valid: bool = Depends(verify_saleor_token),
     ) -> None:
+        """Check that the JWT permissions satisfy the required set."""
         jwt_payload = jwt.decode(
             saleor_token,
             algorithms=["RS256"],
@@ -173,24 +190,28 @@ def require_permission(permissions: list[SaleorPermissions]) -> Callable[..., No
 
 
 class ConfigurationFormDeps:
+    """FastAPI dependency bundle for configuration form endpoints."""
+
     def __init__(
         self,
         request: Request,
-        domain=Query(...),
-    ):
+        domain: str = Query(...),
+    ) -> None:
         self.request = request
         self.saleor_domain = domain
 
 
 class ConfigurationDataDeps:
+    """FastAPI dependency bundle for authenticated configuration data endpoints."""
+
     def __init__(
         self,
         request: Request,
-        saleor_domain=Depends(saleor_domain_header),
-        _domain_is_valid=Depends(verify_saleor_domain),
-        _token_is_valid=Depends(verify_saleor_token),
-        token=Depends(saleor_token),
-    ):
+        saleor_domain: str = Depends(saleor_domain_header),
+        _domain_is_valid: bool = Depends(verify_saleor_domain),
+        _token_is_valid: bool = Depends(verify_saleor_token),
+        token: str = Depends(saleor_token),
+    ) -> None:
         self.request = request
         self.saleor_domain = saleor_domain
         self.token = token
