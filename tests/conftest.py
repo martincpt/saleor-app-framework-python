@@ -1,3 +1,5 @@
+"""Shared pytest fixtures for the saleor_app test suite."""
+
 from collections.abc import Iterable
 from unittest.mock import AsyncMock, Mock, create_autospec
 
@@ -16,6 +18,7 @@ from saleor_app.settings import AWSSettings
 
 @pytest.fixture()
 def aws_settings() -> AWSSettings:
+    """Return a minimal AWSSettings instance for testing."""
     return AWSSettings(
         account_id="",
         access_key_id="",
@@ -26,6 +29,7 @@ def aws_settings() -> AWSSettings:
 
 @pytest.fixture()
 def manifest() -> Manifest:
+    """Return a sample Manifest for testing."""
     return Manifest(
         name="Sample Saleor App",
         version="0.1.0",
@@ -51,6 +55,7 @@ def manifest() -> Manifest:
 
 @pytest.fixture()
 def get_webhook_credentials() -> GetWebhookCredentials:
+    """Return a mock GetWebhookCredentials callback."""
     return AsyncMock()
 
 
@@ -60,11 +65,13 @@ async def _webhook_handler() -> None:
 
 @pytest.fixture()
 def webhook_handler() -> WebHookHandlerSignature:
+    """Return a mock webhook handler function."""
     return create_autospec(_webhook_handler)
 
 
 @pytest.fixture()
 def saleor_app(manifest: Manifest) -> SaleorApp:
+    """Return a SaleorApp instance with mocked callbacks and a test auth token."""
     saleor_app = SaleorApp(
         manifest=manifest,
         validate_domain=AsyncMock(),
@@ -92,6 +99,7 @@ def saleor_app_with_webhooks(
     get_webhook_credentials: GetWebhookCredentials,
     webhook_handler: WebHookHandlerSignature,
 ) -> SaleorApp:
+    """Return a SaleorApp instance with HTTP and SQS webhook routes registered."""
     saleor_app.include_webhook_router(get_webhook_credentials)
     saleor_app.webhook_router.http_event_route(SaleorEventType.PRODUCT_CREATED)(
         webhook_handler,
@@ -115,11 +123,13 @@ def saleor_app_with_webhooks(
 
 @pytest.fixture()
 def mock_request(saleor_app: SaleorApp) -> Request:
+    """Return a mock Request with a fixed body for signature verification tests."""
     return Mock(app=saleor_app, body=AsyncMock(return_value=b"request_body"))
 
 
 @pytest.fixture()
 def mock_request_with_metadata(saleor_app: SaleorApp) -> Request:
+    """Return a mock Request carrying a webhook payload with issuing-principal metadata."""
     return AsyncMock(
         app=saleor_app,
         json=AsyncMock(

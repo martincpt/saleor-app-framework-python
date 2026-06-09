@@ -12,10 +12,12 @@ class GraphQLError(Exception):
         errors: Sequence[dict[str, Any]],
         response_data: dict[str, Any] | None = None,
     ) -> None:
+        """Initialize GraphQLError with the list of errors and optional response data."""
         self.errors = errors
         self.response_data = response_data
 
     def __str__(self) -> str:
+        """Return a human-readable string of all error messages."""
         return (
             f"GraphQLError: {', '.join([error['message'] for error in self.errors])}."
         )
@@ -27,4 +29,5 @@ class IgnoredPrincipalError(Exception):
     message = "Ignore webhook with {} principal ids."
 
     def __init__(self, principal_ids: list[str]) -> None:
+        """Initialize with the list of principal IDs that triggered the ignore."""
         super().__init__(self.message.format(",".join(principal_ids)))

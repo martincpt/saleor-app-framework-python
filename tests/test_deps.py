@@ -1,3 +1,5 @@
+"""Tests for FastAPI dependency functions in saleor_app.deps."""
+
 import hashlib
 from unittest.mock import AsyncMock
 
@@ -20,6 +22,7 @@ from saleor_app.deps import (
 
 
 async def test_saleor_domain_header_missing() -> None:
+    """Raises HTTPException when the domain header is absent."""
     with pytest.raises(HTTPException) as excinfo:
         await saleor_domain_header(None)
 
@@ -27,18 +30,22 @@ async def test_saleor_domain_header_missing() -> None:
 
 
 async def test_saleor_domain_header() -> None:
+    """Returns the domain string when the header is present."""
     assert await saleor_domain_header("saleor_domain") == "saleor_domain"
 
 
 async def test_saleor_token(saleor_app: SaleorApp) -> None:
+    """Returns the token when explicitly provided."""
     assert await saleor_token(saleor_app, "token") == "token"
 
 
 async def test_saleor_token_from_settings(saleor_app: SaleorApp) -> None:
+    """Falls back to development_auth_token when no token header is present."""
     assert await saleor_token(saleor_app, None) == "test_token"
 
 
 async def test_saleor_token_missing(saleor_app: SaleorApp) -> None:
+    """Raises HTTPException when no token is available at all."""
     saleor_app.development_auth_token = None
 
     with pytest.raises(HTTPException) as excinfo:
@@ -51,6 +58,7 @@ async def test_verify_saleor_token(
     saleor_app: SaleorApp,
     mocker: MockerFixture,
 ) -> None:
+    """Returns True when Saleor confirms the token is valid."""
     mock_saleor_client = AsyncMock(SaleorClient)
     mock_saleor_client.__aenter__.return_value.execute.return_value = {
         "tokenVerify": {"isValid": True},
@@ -66,6 +74,7 @@ async def test_verify_saleor_token_invalid(
     saleor_app: SaleorApp,
     mocker: MockerFixture,
 ) -> None:
+    """Raises HTTPException when Saleor reports the token as invalid."""
     mock_saleor_client = AsyncMock(SaleorClient)
     mock_saleor_client.__aenter__.return_value.execute.return_value = {
         "tokenVerify": {"isValid": False},
@@ -87,6 +96,7 @@ async def test_verify_saleor_token_saleor_error(
     saleor_app: SaleorApp,
     mocker: MockerFixture,
 ) -> None:
+    """Returns False when the Saleor API raises a GraphQL error."""
     mock_saleor_client = AsyncMock(SaleorClient)
     mock_saleor_client.__aenter__.return_value.execute.side_effect = GraphQLError(
         errors=[{"message": "Invalid token", "locations": [{"line": 1, "column": 2}]}],
@@ -99,11 +109,13 @@ async def test_verify_saleor_token_saleor_error(
 
 
 async def test_verify_saleor_domain(saleor_app: SaleorApp) -> None:
+    """Returns True when validate_domain callback accepts the domain."""
     saleor_app.validate_domain.return_value = True  # type: ignore[attr-defined]
     assert await verify_saleor_domain(saleor_app, "saleor_domain")
 
 
 async def test_verify_saleor_domain_invalid(saleor_app: SaleorApp) -> None:
+    """Raises HTTPException when validate_domain callback rejects the domain."""
     saleor_app.validate_domain.return_value = False  # type: ignore[attr-defined]
     with pytest.raises(HTTPException) as excinfo:
         await verify_saleor_domain(saleor_app, "saleor_domain")
@@ -116,6 +128,7 @@ async def test_verify_webhook_signature(
     mock_request: Request,
     mocker: MockerFixture,
 ) -> None:
+    """Passes without error when the HMAC signature matches."""
     mock_request.app.include_webhook_router(get_webhook_credentials)
     mock_request.app.get_webhook_credentials.return_value = WebhookCredentials(
         webhook_id="webhook_id",
@@ -142,7 +155,8 @@ async def test_verify_webhook_signature_invalid(
     get_webhook_credentials: GetWebhookCredentials,
     mock_request: Request,
     mocker: MockerFixture,
-):
+) -> None:
+    """Raises HTTPException when the HMAC signature does not match."""
     mock_request.app.include_webhook_router(get_webhook_credentials)
     mock_request.app.get_webhook_credentials.return_value = WebhookCredentials(
         webhook_id="webhook_id",

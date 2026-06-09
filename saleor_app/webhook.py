@@ -59,10 +59,10 @@ class WebhookRouter(APIRouter):
         self,
         _request: Request,
         _payload: list[Webhook],  # NOTE: provide a way to proper define payload types
-        _saleor_domain=Depends(saleor_domain_header),
-        _verify_saleor_domain=Depends(verify_saleor_domain),
-        _verify_webhook_signature=Depends(verify_webhook_signature),
-        _event_type=Header(None, alias=SALEOR_EVENT_HEADER),
+        _saleor_domain: str = Depends(saleor_domain_header),
+        _verify_saleor_domain: bool = Depends(verify_saleor_domain),
+        _verify_webhook_signature: None = Depends(verify_webhook_signature),
+        _event_type: str | None = Header(None, alias=SALEOR_EVENT_HEADER),
     ) -> None:
         """This definition will never be used, it's here for the sake of the OpenAPI spec being complete.
 

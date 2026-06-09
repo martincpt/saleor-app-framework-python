@@ -2,7 +2,7 @@
 
 import logging
 import types
-from typing import Any
+from typing import Any, Self
 
 import aiohttp
 from aiohttp.client import ClientTimeout
@@ -57,7 +57,7 @@ class SaleorClient:
         """Close the underlying aiohttp session."""
         await self.session.close()
 
-    async def __aenter__(self) -> "SaleorClient":
+    async def __aenter__(self) -> Self:
         """Enter the async context manager."""
         return self
 

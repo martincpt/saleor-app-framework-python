@@ -1,6 +1,6 @@
 """Schema utilities for the Saleor App Framework."""
 
-from typing import Any
+from typing import Any, Self
 
 from fastapi import FastAPI, Request
 from pydantic import GetCoreSchemaHandler
@@ -23,7 +23,7 @@ class LazyUrl(str):
 
     __slots__ = ("name", "public")
 
-    def __new__(cls, name: str, public: bool = True):
+    def __new__(cls, name: str, public: bool = True) -> Self:
         """Create a new LazyUrl instance."""
         instance = super().__new__(cls, name)
         instance.name = name

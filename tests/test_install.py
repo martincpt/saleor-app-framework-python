@@ -1,12 +1,18 @@
+"""Tests for the install_app helper function."""
+
 from unittest.mock import AsyncMock
+
+from pytest_mock import MockerFixture
 
 from saleor_app.client.client import SaleorClient
 from saleor_app.client.mutations import CREATE_WEBHOOK
 from saleor_app.core.install import WebhookCredentials
+from saleor_app.core.manifest import Manifest
 from saleor_app.install import install_app
 
 
-async def test_install_app(mocker, manifest):
+async def test_install_app(mocker: MockerFixture, manifest: Manifest) -> None:
+    """install_app creates webhooks for each target URL and returns credentials."""
     mock_saleor_client = AsyncMock(SaleorClient)
     mock_saleor_client.__aenter__.return_value.execute.return_value = {
         "webhookCreate": {"webhook": {"id": "123"}},
@@ -21,7 +27,7 @@ async def test_install_app(mocker, manifest):
         saleor_domain="saleor_domain",
         auth_token="test_token",
         manifest=manifest,
-        events={"queue_1": [("TEST_EVENT_1", None)], "url_1": [("TEST_EVENT_2", None)]},
+        events={"queue_1": [("TEST_EVENT_1", None)], "url_1": [("TEST_EVENT_2", None)]},  # type: ignore[list-item]
         use_insecure_saleor_http=True,
     ) == WebhookCredentials(webhook_id="123", webhook_secret_key="A" * 20)
 
@@ -57,7 +63,11 @@ async def test_install_app(mocker, manifest):
     )
 
 
-async def test_install_app_secure_https(mocker, manifest):
+async def test_install_app_secure_https(
+    mocker: MockerFixture,
+    manifest: Manifest,
+) -> None:
+    """install_app uses https:// scheme when use_insecure_saleor_http is False."""
     mock_saleor_client = AsyncMock(SaleorClient)
     mock_saleor_client.__aenter__.return_value.execute.return_value = {
         "webhookCreate": {"webhook": {"id": "123"}},
@@ -71,7 +81,7 @@ async def test_install_app_secure_https(mocker, manifest):
         saleor_domain="saleor_domain",
         auth_token="test_token",
         manifest=manifest,
-        events={"queue_1": [("TEST_EVENT_1", None)], "url_1": [("TEST_EVENT_2", None)]},
+        events={"queue_1": [("TEST_EVENT_1", None)], "url_1": [("TEST_EVENT_2", None)]},  # type: ignore[list-item]
         use_insecure_saleor_http=False,
     ) == WebhookCredentials(webhook_id="123", webhook_secret_key="A" * 20)
 

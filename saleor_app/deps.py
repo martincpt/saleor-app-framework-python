@@ -197,6 +197,7 @@ class ConfigurationFormDeps:
         request: Request,
         domain: str = Query(...),
     ) -> None:
+        """Initialize with the raw request and query-string domain parameter."""
         self.request = request
         self.saleor_domain = domain
 
@@ -212,6 +213,7 @@ class ConfigurationDataDeps:
         _token_is_valid: bool = Depends(verify_saleor_token),
         token: str = Depends(saleor_token),
     ) -> None:
+        """Initialize with verified domain, token and the raw request."""
         self.request = request
         self.saleor_domain = saleor_domain
         self.token = token

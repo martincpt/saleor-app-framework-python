@@ -1,9 +1,9 @@
 """Enums for the Saleor App Framework."""
 
-from enum import Enum
+from enum import StrEnum
 
 
-class SaleorPermissions(str, Enum):
+class SaleorPermissions(StrEnum):
     """Permissions for the Saleor App Framework."""
 
     HANDLE_CHECKOUTS = "HANDLE_CHECKOUTS"
@@ -30,7 +30,7 @@ class SaleorPermissions(str, Enum):
     MANAGE_USERS = "MANAGE_USERS"
 
 
-class SaleorEventType(str, Enum):
+class SaleorEventType(StrEnum):
     """Event types for the Saleor App Framework."""
 
     ADDRESS_CREATED = "ADDRESS_CREATED"
@@ -142,14 +142,14 @@ class SaleorEventType(str, Enum):
     CHECKOUT_FILTER_SHIPPING_METHODS = "CHECKOUT_FILTER_SHIPPING_METHODS"
 
 
-class TargetType(str, Enum):
+class TargetType(StrEnum):
     """Target types for the Saleor App Framework."""
 
     POPUP = "POPUP"
     APP_PAGE = "APP_PAGE"
 
 
-class MountType(str, Enum):
+class MountType(StrEnum):
     """Mount types for the Saleor App Framework."""
 
     CUSTOMER_DETAILS_MORE_ACTIONS = "CUSTOMER_DETAILS_MORE_ACTIONS"
@@ -172,7 +172,7 @@ class MountType(str, Enum):
     PRODUCT_OVERVIEW_MORE_ACTIONS = "PRODUCT_OVERVIEW_MORE_ACTIONS"
 
 
-class PrincipalType(str, Enum):
+class PrincipalType(StrEnum):
     """Principal types for the Saleor App Framework."""
 
     app = "app"

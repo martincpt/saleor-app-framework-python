@@ -1,3 +1,5 @@
+"""Tests for the Saleor App configuration endpoint handlers."""
+
 from collections import defaultdict
 from unittest.mock import AsyncMock
 
@@ -10,6 +12,7 @@ from saleor_app.deps import SALEOR_DOMAIN_HEADER
 
 
 async def test_manifest(client: TestClient, saleor_app: SaleorApp) -> None:
+    """GET /configuration/manifest returns the serialised manifest JSON."""
     response = client.get("configuration/manifest")
 
     assert response.status_code == 200
@@ -25,6 +28,7 @@ async def test_install(
     saleor_app_with_webhooks: SaleorApp,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """POST /configuration/install registers webhooks and calls store_app_data."""
     install_app_mock = AsyncMock()
     monkeypatch.setattr("saleor_app.endpoints.install_app", install_app_mock)
 

@@ -42,8 +42,8 @@ async def install(
     request: Request,
     data: InstallData,
     saleor_app: "SaleorApp" = Depends(saleor_app),
-    _domain_is_valid=Depends(verify_saleor_domain),
-    saleor_domain=Depends(saleor_domain_header),
+    _domain_is_valid: bool = Depends(verify_saleor_domain),
+    saleor_domain: str = Depends(saleor_domain_header),
 ) -> None:
     """Handle app installation by registering webhooks with Saleor."""
     events: WebhookSubscriptionMap = defaultdict(list)
