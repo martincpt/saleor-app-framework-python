@@ -1,3 +1,5 @@
+"""FastAPI endpoint handlers for the Saleor App configuration routes."""
+
 import logging
 from collections import defaultdict
 from typing import TYPE_CHECKING
@@ -43,6 +45,7 @@ async def install(
     _domain_is_valid=Depends(verify_saleor_domain),
     saleor_domain=Depends(saleor_domain_header),
 ) -> None:
+    """Handle app installation by registering webhooks with Saleor."""
     events: WebhookSubscriptionMap = defaultdict(list)
 
     if hasattr(saleor_app, "webhook_router"):

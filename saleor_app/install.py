@@ -1,3 +1,5 @@
+"""App installation logic for the Saleor App Framework."""
+
 import logging
 import secrets
 import string
@@ -20,6 +22,7 @@ async def install_app(
     events: WebhookSubscriptionMap,
     use_insecure_saleor_http: bool,
 ) -> WebhookCredentials:
+    """Register webhooks with Saleor and return the resulting credentials."""
     alphabet = string.ascii_letters + string.digits
     secret_key = "".join(secrets.choice(alphabet) for _ in range(20))
 
