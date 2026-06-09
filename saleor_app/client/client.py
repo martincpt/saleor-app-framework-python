@@ -3,18 +3,25 @@ import logging
 import aiohttp
 from aiohttp.client import ClientTimeout
 
+from saleor_app.core.manifest import Manifest
+
 from .exceptions import GraphQLError
 
 logger = logging.getLogger("saleor.client")
 
 
 class SaleorClient:
-    def __init__(self, saleor_url, user_agent, auth_token=None, timeout=15):
+    @classmethod
+    def for_app(cls, url: str, manifest: Manifest, **kwargs) -> "SaleorClient":
+        user_agent = f"saleor_client/{manifest.id}-{manifest.version}"
+        return cls(url=url, user_agent=user_agent, **kwargs)
+
+    def __init__(self, url, user_agent, auth_token=None, timeout=15):
         headers = {"User-Agent": user_agent}
         if auth_token:
             headers["Authorization"] = f"Bearer {auth_token}"
         self.session = aiohttp.ClientSession(
-            base_url=saleor_url,
+            base_url=url,
             headers=headers,
             raise_for_status=True,
             timeout=ClientTimeout(total=timeout),

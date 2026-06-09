@@ -7,9 +7,9 @@ from typing import TYPE_CHECKING
 import jwt
 from fastapi import Depends, Header, HTTPException, Query, Request
 
+from .client.client import SaleorClient
 from .client.exceptions import GraphQLError
 from .client.mutations import VERIFY_TOKEN
-from .client.utils import get_client_for_app
 from .core.enums import SaleorPermissions
 from .core.types import DomainName
 
@@ -70,7 +70,7 @@ async def verify_saleor_token(
     schema = "http" if saleor_app.use_insecure_saleor_http else "https"
     url = f"{schema}://{saleor_domain}"
 
-    async with get_client_for_app(url, manifest=saleor_app.manifest) as saleor_client:
+    async with SaleorClient.for_app(url, saleor_app.manifest) as saleor_client:
         try:
             response = await saleor_client.execute(
                 query=VERIFY_TOKEN,

@@ -55,7 +55,10 @@ async def test_verify_saleor_token(
     mock_saleor_client.__aenter__.return_value.execute.return_value = {
         "tokenVerify": {"isValid": True},
     }
-    mocker.patch("saleor_app.deps.get_client_for_app", return_value=mock_saleor_client)
+    mocker.patch(
+        "saleor_app.deps.SaleorClient.for_app",
+        return_value=mock_saleor_client,
+    )
     assert await verify_saleor_token(saleor_app, "saleor_domain", "token")
 
 
@@ -67,7 +70,10 @@ async def test_verify_saleor_token_invalid(
     mock_saleor_client.__aenter__.return_value.execute.return_value = {
         "tokenVerify": {"isValid": False},
     }
-    mocker.patch("saleor_app.deps.get_client_for_app", return_value=mock_saleor_client)
+    mocker.patch(
+        "saleor_app.deps.SaleorClient.for_app",
+        return_value=mock_saleor_client,
+    )
     with pytest.raises(HTTPException) as excinfo:
         await verify_saleor_token(saleor_app, "saleor_domain", "token")
 
@@ -85,7 +91,10 @@ async def test_verify_saleor_token_saleor_error(
     mock_saleor_client.__aenter__.return_value.execute.side_effect = GraphQLError(
         errors=[{"message": "Invalid token", "locations": [{"line": 1, "column": 2}]}],
     )
-    mocker.patch("saleor_app.deps.get_client_for_app", return_value=mock_saleor_client)
+    mocker.patch(
+        "saleor_app.deps.SaleorClient.for_app",
+        return_value=mock_saleor_client,
+    )
     assert not await verify_saleor_token(saleor_app, "saleor_domain", "token")
 
 

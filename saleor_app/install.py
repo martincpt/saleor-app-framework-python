@@ -2,9 +2,9 @@ import logging
 import secrets
 import string
 
+from .client.client import SaleorClient
 from .client.exceptions import GraphQLError
 from .client.mutations import CREATE_WEBHOOK
-from .client.utils import get_client_for_app
 from .core.install import WebhookCredentials
 from .core.manifest import Manifest
 from .core.types import AppToken, DomainName, WebhookSubscriptionMap
@@ -27,8 +27,8 @@ async def install_app(
 
     errors = []
 
-    async with get_client_for_app(
-        f"{schema}://{saleor_domain}",
+    async with SaleorClient.for_app(
+        url=f"{schema}://{saleor_domain}",
         manifest=manifest,
         auth_token=auth_token,
     ) as saleor_client:

@@ -19,7 +19,7 @@ from saleor_app.client.exceptions import GraphQLError
 )
 async def test__init__(auth_token, timeout):
     kwargs = {
-        "saleor_url": "http://saleor.local",
+        "url": "http://saleor.local",
         "user_agent": "saleor_client/test-0.0.1",
     }
     if auth_token is not None:
@@ -29,7 +29,7 @@ async def test__init__(auth_token, timeout):
 
     client = SaleorClient(**kwargs)
 
-    assert str(client.session._base_url) == kwargs["saleor_url"]
+    assert str(client.session._base_url) == kwargs["url"]
 
     if auth_token is not None:
         assert client.session.headers["Authorization"] == f"Bearer {auth_token}"
@@ -38,7 +38,7 @@ async def test__init__(auth_token, timeout):
 
 
 async def test_close(mocker):
-    client = SaleorClient(saleor_url="http://saleor.local", user_agent="test")
+    client = SaleorClient(url="http://saleor.local", user_agent="test")
     spy = mocker.spy(client, "close")
 
     await client.close()
@@ -48,7 +48,7 @@ async def test_close(mocker):
 
 async def test_context_manager(mocker):
     async with SaleorClient(
-        saleor_url="http://saleor.local",
+        url="http://saleor.local",
         user_agent="test",
     ) as saleor:
         spy = mocker.spy(saleor, "close")
@@ -63,7 +63,7 @@ async def test_execute(monkeypatch):
         "data": "response_data",
     }
     async with SaleorClient(
-        saleor_url="http://saleor.local",
+        url="http://saleor.local",
         user_agent="test",
     ) as saleor:
         monkeypatch.setattr(saleor, "session", mock_session, raising=True)
@@ -85,7 +85,7 @@ async def test_execute_error(monkeypatch):
         "errors": [{"message": "there are errors"}],
     }
     async with SaleorClient(
-        saleor_url="http://saleor.local",
+        url="http://saleor.local",
         user_agent="test",
     ) as saleor:
         monkeypatch.setattr(saleor, "session", mock_session, raising=True)
