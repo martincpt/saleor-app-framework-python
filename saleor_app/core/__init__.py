@@ -1,16 +1,16 @@
 """Core schemas for the Saleor App Framework."""
 
-from saleor_app.core.enums import (
+from .enums import (
     MountType,
     PrincipalType,
     SaleorEventType,
     SaleorPermissions,
     TargetType,
 )
-from saleor_app.core.install import InstallData, WebhookCredentials
-from saleor_app.core.manifest import Extension, Manifest
-from saleor_app.core.sqs import SQSHandler, SQSUrl
-from saleor_app.core.types import (
+from .install import InstallData, WebhookCredentials
+from .manifest import Extension, Manifest
+from .sqs import SQSHandler, SQSUrl
+from .types import (
     AppToken,
     DomainName,
     GetWebhookCredentials,
@@ -21,8 +21,8 @@ from saleor_app.core.types import (
     WebhookSubscription,
     WebhookSubscriptionMap,
 )
-from saleor_app.core.utils import LazyPath, LazyUrl
-from saleor_app.core.webhook import (
+from .utils import LazyPath, LazyUrl
+from .webhook import (
     Principal,
     Webhook,
     WebhookMeta,
@@ -51,6 +51,7 @@ __all__ = [
     "TargetType",
     "Url",
     "ValidateDomain",
+    "WebHookHandlerSignature",
     "Webhook",
     "WebhookCredentials",
     "WebhookMeta",
@@ -59,5 +60,4 @@ __all__ = [
     "WebhookV1",
     "WebhookV2",
     "WebhookV3",
-    "WebHookHandlerSignature",
 ]

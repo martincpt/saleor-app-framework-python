@@ -1,5 +1,6 @@
-from saleor_app.client.client import SaleorClient
 from saleor_app.core.manifest import Manifest
+
+from .client import SaleorClient
 
 
 def get_client_for_app(saleor_url: str, manifest: Manifest, **kwargs) -> SaleorClient:

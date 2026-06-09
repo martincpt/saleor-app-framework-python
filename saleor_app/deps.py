@@ -7,12 +7,11 @@ from typing import TYPE_CHECKING
 import jwt
 from fastapi import Depends, Header, HTTPException, Query, Request
 
-from saleor_app.client.exceptions import GraphQLError
-from saleor_app.client.mutations import VERIFY_TOKEN
-from saleor_app.client.utils import get_client_for_app
-from saleor_app.core.types import DomainName
-
+from .client.exceptions import GraphQLError
+from .client.mutations import VERIFY_TOKEN
+from .client.utils import get_client_for_app
 from .core.enums import SaleorPermissions
+from .core.types import DomainName
 
 if TYPE_CHECKING:
     from .app import SaleorApp

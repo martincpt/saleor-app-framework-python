@@ -4,7 +4,7 @@ from typing import Annotated
 
 from pydantic import AnyUrl, BaseModel, UrlConstraints
 
-from saleor_app.core.types import WebHookHandlerSignature
+from .types import WebHookHandlerSignature
 
 SQSUrl = Annotated[AnyUrl, UrlConstraints(allowed_schemes=["awssqs"])]
 

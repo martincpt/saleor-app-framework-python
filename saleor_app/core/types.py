@@ -2,9 +2,9 @@
 
 from collections.abc import Awaitable, Callable
 
-from saleor_app.core.enums import SaleorEventType
-from saleor_app.core.install import WebhookCredentials
-from saleor_app.core.webhook import Webhook
+from .enums import SaleorEventType
+from .install import WebhookCredentials
+from .webhook import Webhook
 
 DomainName = str
 AppToken = str

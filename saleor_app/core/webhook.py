@@ -6,7 +6,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict
 from pydantic.fields import Field
 
-from saleor_app.core.enums import PrincipalType
+from .enums import PrincipalType
 
 
 class WebhookV1(BaseModel):

@@ -2,8 +2,8 @@
 
 from pydantic import AnyHttpUrl, BaseModel, ConfigDict, Field
 
-from saleor_app.core.enums import MountType, TargetType
-from saleor_app.core.utils import LazyPath, LazyUrl
+from .enums import MountType, TargetType
+from .utils import LazyPath, LazyUrl
 
 
 class Extension(BaseModel):
