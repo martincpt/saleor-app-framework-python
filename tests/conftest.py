@@ -1,0 +1,146 @@
+"""Shared pytest fixtures for the saleor_app test suite."""
+
+from collections.abc import Iterable
+from unittest.mock import AsyncMock, Mock, create_autospec
+
+import pytest
+from fastapi import Request
+from fastapi.testclient import TestClient
+
+from saleor_app.app import SaleorApp
+from saleor_app.core.enums import SaleorEventType
+from saleor_app.core.manifest import Extension, Manifest
+from saleor_app.core.sqs import SQSUrl
+from saleor_app.core.types import GetWebhookCredentials, WebHookHandlerSignature
+from saleor_app.core.utils import LazyPath, LazyUrl
+from saleor_app.settings import AWSSettings
+
+
+@pytest.fixture()
+def aws_settings() -> AWSSettings:
+    """Return a minimal AWSSettings instance for testing."""
+    return AWSSettings(
+        account_id="",
+        access_key_id="",
+        secret_access_key="",
+        region="",
+    )
+
+
+@pytest.fixture()
+def manifest() -> Manifest:
+    """Return a sample Manifest for testing."""
+    return Manifest(
+        name="Sample Saleor App",
+        version="0.1.0",
+        about="Sample Saleor App seving as an example.",
+        data_privacy="",
+        data_privacy_url="http://172.17.0.1:5000/dataPrivacyUrl",
+        homepage_url="http://172.17.0.1:5000/homepageUrl",
+        support_url="http://172.17.0.1:5000/supportUrl",
+        id="saleor-simple-sample",
+        permissions=["MANAGE_PRODUCTS", "MANAGE_USERS"],
+        app_url=LazyUrl("configuration-form"),
+        extensions=[
+            Extension(
+                label="Custom Product Create",
+                mount="PRODUCT_OVERVIEW_CREATE",
+                target="POPUP",
+                permissions=["MANAGE_PRODUCTS"],
+                url=LazyPath("extension"),
+            ),
+        ],
+    )
+
+
+@pytest.fixture()
+def get_webhook_credentials() -> GetWebhookCredentials:
+    """Return a mock GetWebhookCredentials callback."""
+    return AsyncMock()
+
+
+async def _webhook_handler() -> None:
+    pass
+
+
+@pytest.fixture()
+def webhook_handler() -> WebHookHandlerSignature:
+    """Return a mock webhook handler function."""
+    return create_autospec(_webhook_handler)
+
+
+@pytest.fixture()
+def saleor_app(manifest: Manifest) -> SaleorApp:
+    """Return a SaleorApp instance with mocked callbacks and a test auth token."""
+    saleor_app = SaleorApp(
+        manifest=manifest,
+        validate_domain=AsyncMock(),
+        store_app_data=AsyncMock(),
+        use_insecure_saleor_http=False,
+        development_auth_token="test_token",
+    )
+
+    saleor_app.get("/configuration", name="configuration-form")(lambda x: x)
+    saleor_app.get("/extension", name="extension")(lambda x: x)
+    saleor_app.get("/test_webhook_handler", name="test-webhook-handler")(lambda x: x)
+    return saleor_app
+
+
+@pytest.fixture()
+def client(saleor_app: SaleorApp) -> Iterable[TestClient]:
+    """Test client fixture."""
+    with TestClient(saleor_app) as client:
+        yield client
+
+
+@pytest.fixture()
+def saleor_app_with_webhooks(
+    saleor_app: SaleorApp,
+    get_webhook_credentials: GetWebhookCredentials,
+    webhook_handler: WebHookHandlerSignature,
+) -> SaleorApp:
+    """Return a SaleorApp instance with HTTP and SQS webhook routes registered."""
+    saleor_app.include_webhook_router(get_webhook_credentials)
+    saleor_app.webhook_router.http_event_route(SaleorEventType.PRODUCT_CREATED)(
+        webhook_handler,
+    )
+    saleor_app.webhook_router.http_event_route(SaleorEventType.PRODUCT_UPDATED)(
+        webhook_handler,
+    )
+    saleor_app.webhook_router.http_event_route(SaleorEventType.PRODUCT_DELETED)(
+        webhook_handler,
+    )
+    saleor_app.webhook_router.sqs_event_route(
+        SQSUrl("awssqs://username:password@localstack:4566/account_id/order_created"),
+        SaleorEventType.ORDER_CREATED,
+    )(webhook_handler)
+    saleor_app.webhook_router.sqs_event_route(
+        SQSUrl("awssqs://username:password@localstack:4566/account_id/order_updated"),
+        SaleorEventType.ORDER_UPDATED,
+    )(webhook_handler)
+    return saleor_app
+
+
+@pytest.fixture()
+def mock_request(saleor_app: SaleorApp) -> Request:
+    """Return a mock Request with a fixed body for signature verification tests."""
+    return Mock(app=saleor_app, body=AsyncMock(return_value=b"request_body"))
+
+
+@pytest.fixture()
+def mock_request_with_metadata(saleor_app: SaleorApp) -> Request:
+    """Return a mock Request carrying a webhook payload with issuing-principal metadata."""
+    return AsyncMock(
+        app=saleor_app,
+        json=AsyncMock(
+            return_value=[
+                {
+                    "meta": {
+                        "issued_at": "2022-03-09T14:42:00.756412+00:00",
+                        "version": "3.1.0-a.25",
+                        "issuing_principal": {"id": "VXNlcjox", "type": "user"},
+                    },
+                },
+            ],
+        ),
+    )

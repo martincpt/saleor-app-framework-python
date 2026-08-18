@@ -5,9 +5,7 @@ Saleor App Framework (Python) provides an easy way to install Your app into the 
 Supported features:
 
 - Installation
-- Webhooks handling
-- Exception handling
-- Ignoring Webhooks triggered by your app
+- Webhooks handling (HTTP and SQS)
 
 More on usage You can find in the official [Documentation](https://mirumee.github.io/saleor-app-framework-python/)
 
@@ -40,31 +38,40 @@ The original repository is pretty much stale and unmaintained. This fork aims to
 ### Important changes
 
 - **Dependency Management**
-  - The project now utilizes uv for dependency management, replacing poetry.
+  - The project now uses uv for dependency management, replacing poetry.
+  - Removed unused runtime dependencies: `aiofiles`, `jinja2`, `uvicorn`.
 
 - **Python Version**
   - The minimum required Python version is now 3.12.
 
-- **Pydantic**:
+- **Pydantic**
   - Updated to version 2.
 
-- **Pre-commit Configuration**:
+- **Package Layout**
+  - Removed the `src/` layout. `saleor_app/` now lives at the project root.
+  - Tests moved from `saleor_app/tests/` to a top-level `tests/` directory.
+  - Added `py.typed` marker (PEP 561) for typed package support.
+
+- **Package Structure**
+  - `saleor_app.schemas` renamed to `saleor_app.core`, with internal modules split by domain (`enums`, `types`, `install`, `manifest`, `webhook`, `sqs`).
+  - `saleor_app.saleor` renamed to `saleor_app.client`.
+  - All enums consolidated into `saleor_app.core.enums`.
+  - All type aliases consolidated into `saleor_app.core.types`.
+  - Intra-package imports converted to relative imports.
+
+- **SaleorClient**
+  - `SaleorClient.for_app(url, manifest, **kwargs)` factory classmethod replaces the standalone `get_client_for_app` helper.
+
+- **Pre-commit Configuration**
   - Flake8 and isort have been replaced by Ruff.
   - MyPy has been added.
+  - Resolved all previously suppressed lint ignores (ANN, D-series).
 
 - **GitHub CI**
   - Now configured to use pre-commit.
 
 - **Tox**
-  - Tox has been removed, with possible future reconsideration for re-enablement.
-
-### TODO
-
-- Resolve and Remove Ruff Ignores in pyproject.toml
-  - Annotation-related: ANN001, ANN201, ANN202, ANN204
-  - Docstring-related: D100, D101, D102, D103, D105, D107, D400, D415
-
-- Update documentation and README.md
+  - Tox has been removed.
 
 ### Minimum working example
 
@@ -75,17 +82,21 @@ Manifest URL for local Docker access:
     http://host.docker.internal:5001/configuration/manifest
 
 ```python
+from pathlib import Path
+
 from fastapi.param_functions import Depends
 from fastapi.responses import PlainTextResponse
 
 from saleor_app.app import SaleorApp
-from saleor_app.deps import saleor_domain_header
-from saleor_app.schemas.handlers import SaleorEventType
-from saleor_app.schemas.webhook import Webhook
-from saleor_app.deps import ConfigurationFormDeps
-from saleor_app.schemas.core import DomainName, WebhookData
-from saleor_app.schemas.manifest import Manifest
-from saleor_app.schemas.utils import LazyUrl
+from saleor_app.core.enums import SaleorEventType
+from saleor_app.core.install import WebhookCredentials
+from saleor_app.core.manifest import Manifest
+from saleor_app.core.types import DomainName
+from saleor_app.core.utils import LazyUrl
+from saleor_app.core.webhook import Webhook
+from saleor_app.deps import ConfigurationFormDeps, saleor_domain_header
+
+WEBHOOK_CREDENTIALS_FILE = Path("webhook_credentials.json")
 
 
 async def validate_domain(saleor_domain: DomainName) -> bool:
@@ -93,17 +104,18 @@ async def validate_domain(saleor_domain: DomainName) -> bool:
     return True
 
 
-stored_webhook: WebhookData
-
-
 async def store_app_data(
     saleor_domain: DomainName,
     auth_token: str,
-    webhook_data: WebhookData,
-):
-    print("Called store_app_data", saleor_domain, auth_token, webhook_data)
-    global stored_webhook
-    stored_webhook = webhook_data
+    webhook_credentials: WebhookCredentials,
+) -> None:
+    print("Called store_app_data", saleor_domain, auth_token, webhook_credentials)
+    WEBHOOK_CREDENTIALS_FILE.write_text(webhook_credentials.model_dump_json())
+
+
+async def get_webhook_credentials(saleor_domain: DomainName) -> WebhookCredentials:
+    print("Called get_webhook_credentials", saleor_domain)
+    return WebhookCredentials.model_validate_json(WEBHOOK_CREDENTIALS_FILE.read_text())
 
 
 manifest = Manifest(
@@ -123,7 +135,8 @@ manifest = Manifest(
 app = SaleorApp(
     manifest=manifest,
     validate_domain=validate_domain,
-    save_app_data=store_app_data,
+    store_app_data=store_app_data,
+    get_webhook_credentials=get_webhook_credentials,
     # more arguments to come
     use_insecure_saleor_http=True,
     development_auth_token="dev_token",
@@ -146,17 +159,7 @@ async def get_data_placeholder(commons: ConfigurationFormDeps = Depends()) -> st
     return "This is a placeholder page for data privacy, homepage, and support page."
 
 
-app.include_saleor_app_routes()
-
-
-# ---- WEBHOOK ----
-async def get_webhook_details(saleor_domain: DomainName) -> WebhookData:
-    return stored_webhook
-
-
-app.include_webhook_router(get_webhook_details=get_webhook_details)
-
-
+# ---- Webhooks ----
 @app.webhook_router.http_event_route(SaleorEventType.PRODUCT_CREATED)
 async def product_created(
     payload: list[Webhook],

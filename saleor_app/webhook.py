@@ -1,0 +1,140 @@
+"""Webhook routing infrastructure for the Saleor App Framework."""
+
+from collections.abc import Awaitable, Callable
+
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from fastapi.routing import APIRoute
+from starlette.responses import Response
+
+from .core.enums import SaleorEventType
+from .core.sqs import SQSHandler, SQSUrl
+from .core.types import WebHookHandlerSignature
+from .core.webhook import Webhook
+from .deps import (
+    saleor_domain_header,
+    verify_saleor_domain,
+    verify_webhook_signature,
+)
+
+SALEOR_EVENT_HEADER = "x-saleor-event"
+
+
+class WebhookRoute(APIRoute):
+    """Custom APIRoute that dispatches requests by the x-saleor-event header."""
+
+    def get_route_handler(self) -> Callable[[Request], Awaitable[Response]]:
+        """Return a handler that reads the event header and dispatches to the registered route."""
+
+        async def custom_route_handler(request: Request) -> Response:
+            if event_type := request.headers.get(SALEOR_EVENT_HEADER):
+                route = request.app.webhook_router.http_routes[event_type.upper()]
+                handler = route.get_route_handler()
+                response: Response = await handler(request)
+                return response
+
+            raise HTTPException(
+                status_code=400,
+                detail=f"Missing {SALEOR_EVENT_HEADER.upper()} header.",
+            )
+
+        return custom_route_handler
+
+
+class WebhookRouter(APIRouter):
+    """APIRouter that manages HTTP and SQS webhook route registration."""
+
+    http_routes: dict[SaleorEventType, APIRoute]
+    http_routes_subscriptions: dict[SaleorEventType, str]
+    sqs_routes: dict[SaleorEventType, SQSHandler]
+
+    def __init__(self, *args, **kwargs) -> None:
+        """Initialize the router and register the OpenAPI stub endpoint."""
+        super().__init__(*args, **kwargs)
+        self.http_routes = {}
+        self.http_routes_subscriptions = {}
+        self.sqs_routes = {}
+        self.post("", name="handle-webhook")(self.__handle_webhook_stub)
+
+    async def __handle_webhook_stub(
+        self,
+        _request: Request,
+        _payload: list[Webhook],  # NOTE: provide a way to proper define payload types
+        _saleor_domain: str = Depends(saleor_domain_header),
+        _verify_saleor_domain: bool = Depends(verify_saleor_domain),
+        _verify_webhook_signature: None = Depends(verify_webhook_signature),
+        _event_type: str | None = Header(None, alias=SALEOR_EVENT_HEADER),
+    ) -> None:
+        """This definition will never be used, it's here for the sake of the OpenAPI spec being complete.
+
+        Endpoints registered by `http_event_route` are invoked in place of this.
+        """
+        return
+
+    def http_event_route(
+        self,
+        event_type: SaleorEventType,
+        subscription_query: str | None = None,
+    ) -> Callable[[WebHookHandlerSignature], None]:
+        """Register an HTTP handler for a Saleor webhook event.
+
+        Returns a decorator that wires the decorated function as the handler for
+        ``event_type``. Domain and signature verification are injected automatically
+        as FastAPI dependencies.
+
+        Args:
+        ----
+            event_type: The Saleor event type to subscribe to.
+            subscription_query: Optional GraphQL subscription query sent during
+                webhook registration to customise the payload.
+
+        Returns:
+        -------
+            A decorator that registers the handler function.
+
+        """
+
+        def decorator(func: WebHookHandlerSignature) -> None:
+            """Register func as the handler for this event type."""
+            self.http_routes[event_type] = APIRoute(
+                path="",
+                endpoint=func,
+                dependencies=[
+                    Depends(verify_saleor_domain),
+                    Depends(verify_webhook_signature),
+                ],
+            )
+
+            if subscription_query:
+                self.http_routes_subscriptions[event_type] = subscription_query
+
+        return decorator
+
+    def sqs_event_route(
+        self,
+        target_url: SQSUrl,
+        event_type: SaleorEventType,
+    ) -> Callable[[WebHookHandlerSignature], None]:
+        """Register an SQS handler for a Saleor webhook event.
+
+        Returns a decorator that stores the decorated function as the SQS handler
+        for ``event_type``. The SQS URL is registered with Saleor during installation.
+
+        Args:
+        ----
+            target_url: The SQS queue URL that Saleor will deliver events to.
+            event_type: The Saleor event type to subscribe to.
+
+        Returns:
+        -------
+            A decorator that registers the handler function.
+
+        """
+
+        def decorator(func: WebHookHandlerSignature) -> None:
+            """Register func as the SQS handler for this event type."""
+            self.sqs_routes[event_type] = SQSHandler(
+                target_url=str(target_url),
+                handler=func,
+            )
+
+        return decorator
